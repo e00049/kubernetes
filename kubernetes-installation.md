@@ -7,7 +7,7 @@ Pre-Requisites
 4. Stop and disable UFW (Firewall)
 
 
-Start to Install 
+
 
 # All the configuration Done as SUDO User
 
@@ -39,9 +39,7 @@ sudo apt-add-repository "deb http://apt.kubernetes.io/ kubernetes-xenial main"
  
  sudo kubeadm init --pod-network-cidr=10.244.0.0/16
  
- .
- .
- .
+ 
  mkdir -p $HOME/.kube
  
  sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
@@ -52,17 +50,13 @@ sudo apt-add-repository "deb http://apt.kubernetes.io/ kubernetes-xenial main"
  
  sudo kubeadm token create --print-join-command
  
- .
- .
- .
  kubectl get nodes
  
  # Step 07: Deploy a Pod Network through the master node
  
   sudo kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
-  .
-  .
-  .
+
+
   kubectl get pods --all-namespaces
   
  # To apply Tag for worker
