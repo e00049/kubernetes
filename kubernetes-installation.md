@@ -11,7 +11,7 @@ Start to Install
 
 # All the configuration Done as SUDO User
 
-# Step: 01.  Install Docker on Master and Work Machines.
+# Step: 01:  Install Docker on Master and Work Machines.
 
 sudo apt install docker.io -y
 
@@ -41,8 +41,6 @@ sudo apt-add-repository "deb http://apt.kubernetes.io/ kubernetes-xenial main"
  
  .
  .
- 
- 
  .
  mkdir -p $HOME/.kube
  
@@ -56,17 +54,14 @@ sudo apt-add-repository "deb http://apt.kubernetes.io/ kubernetes-xenial main"
  
  .
  .
- 
  .
  kubectl get nodes
  
  # Step 07: Deploy a Pod Network through the master node
  
   sudo kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
-  
   .
   .
-  
   .
   kubectl get pods --all-namespaces
   
