@@ -31,7 +31,7 @@ sudo apt-add-repository "deb http://apt.kubernetes.io/ kubernetes-xenial main"
 
  # Step 04: Install Kubeadm on the both the Machines
  
- sudo apt install kubeadm
+ sudo apt install kubeadm -y
  
  kubeadm version
  
