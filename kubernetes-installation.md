@@ -61,3 +61,8 @@ sudo apt-add-repository "deb http://apt.kubernetes.io/ kubernetes-xenial main"
   
  # To apply Tag for worker
  sudo kubectl label node worker.example.com node-role.kubernetes.io/worker=worker
+
+.
+.
+.
+Source: https://phoenixnap.com/kb/install-kubernetes-on-ubuntu
