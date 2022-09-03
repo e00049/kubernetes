@@ -21,3 +21,6 @@
 # Step 5: Start Minikube
     minikube start
   
+# REF
+    https://phoenixnap.com/kb/install-minikube-on-ubuntu
+
