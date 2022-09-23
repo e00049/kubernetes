@@ -8,7 +8,6 @@ Pre-Requisites
 
 
 
-
 # All the configuration Done as SUDO User
 
 # Step: 01:  Install Docker on Master and Work Machines.
