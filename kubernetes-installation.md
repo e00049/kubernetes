@@ -14,6 +14,8 @@ Pre-Requisites
 
 sudo apt install docker.io -y
 
+sudo usermod -aG docker e00049
+
 sudo systemctl status docker
 
 sudo systemctl start docker
