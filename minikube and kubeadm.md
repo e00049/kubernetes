@@ -1,0 +1,83 @@
+Source: https://www.linuxtechi.com/how-to-install-minikube-on-ubuntu/
+
+*****  Kubernetes Minikube Installation on Ubuntu servers 20.04 ******
+
+#!/usr/bin/env bash
+
+useradd -s /bin/bash -m e00049
+echo -e "z\nz" | passwd e00049 >/dev/null 2>&1
+echo "e00049 ALL=(ALL)      NOPASSWD: ALL" >> /etc/sudoers
+sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/g' /etc/ssh/sshd_config
+sed -i 's/PermitRootLogin forced-commands-only/#PermitRootLogin forced-commands-only/g' /etc/ssh/sshd_config
+systemctl restart sshd >/dev/null 2>&1
+systemctl restart sshd >/dev/null 2>&1
+
+sudo apt update -y
+sudo apt install docker.io -y
+sudo systemctl enable docker
+sudo usermod -aG docker e00049 && newgrp docker
+docker version
+sudo apt-get update
+sudo apt install -y curl wget apt-transport-https
+cd /tmp; wget https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+sudo cp minikube-linux-amd64 /usr/local/bin/minikube
+sudo chmod +x /usr/local/bin/minikube
+curl -LO https://storage.googleapis.com/kubernetes-release/release/`curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt`/bin/linux/amd64/kubectl
+chmod +x kubectl
+sudo mv kubectl /usr/local/bin/
+minikube start --driver=docker
+
+
+--------------------------- Docker installation Method 002 ----------------
+
+sudo apt update 
+
+sudo apt-get install ca-certificates curl gnupg lsb-release -y 
+sudo mkdir -p /etc/apt/keyrings
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+sudo apt-get update
+sudo apt-get install docker-ce docker-ce-cli containerd.io docker-compose-plugin -y
+sudo usermod -aG docker e00049 && newgrp docker
+------------------------------------------------------------------------------------
+
+Source: https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/
+
+			***** Kubeadm Installation on Ubuntu servers 20.04 *****
+			
+#!/usr/bin/env bash
+
+useradd -s /bin/bash -m e00049
+echo -e "z\nz" | passwd e00049 >/dev/null 2>&1
+echo "e00049 ALL=(ALL)      NOPASSWD: ALL" >> /etc/sudoers
+sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/g' /etc/ssh/sshd_config
+sed -i 's/PermitRootLogin forced-commands-only/#PermitRootLogin forced-commands-only/g' /etc/ssh/sshd_config
+systemctl restart sshd >/dev/null 2>&1
+systemctl restart sshd >/dev/null 2>&1			
+
+sudo apt update -y
+sudo apt install docker.io -y
+sudo systemctl enable docker
+sudo usermod -aG docker e00049 && newgrp docker
+docker version
+sudo apt-get update
+sudo apt-get install -y apt-transport-https ca-certificates curl
+sudo curl -fsSLo /usr/share/keyrings/kubernetes-archive-keyring.gpg https://packages.cloud.google.com/apt/doc/apt-key.gpg
+echo "deb [signed-by=/usr/share/keyrings/kubernetes-archive-keyring.gpg] https://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee /etc/apt/sources.list.d/kubernetes.list
+sudo apt-get update
+sudo apt-get install -y kubelet kubeadm kubectl
+
+# only on server
+sudo kubeadm init
+mkdir -p $HOME/.kube
+sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+sudo chown $(id -u):$(id -g) $HOME/.kube/config
+kubectl apply -f https://github.com/weaveworks/weave/releases/download/v2.8.1/weave-daemonset-k8s.yaml
+sudo kubeadm token create --print-join-command   # To connect worker node
+
+
+-----------------------------------------------------------------------------------------------
+
+
+KUBECONFIG=~/.kube/config:~/.kube/config-02 kubectl config view --flatten > /tmp/config
+
