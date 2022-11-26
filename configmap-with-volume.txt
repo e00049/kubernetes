@@ -1,0 +1,101 @@
+
+k8s>> kubectl create configmap game-config --from-file=configure-pod-container/configmap/game.properties
+
+
+--->> Create ConfigMaps from literal values 
+k8s>> kubectl create configmap special-config --from-literal=special.how=very --from-literal=special.type=charm
+
+k8s>> kubectl get configmaps special-config -o yaml
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: special-config
+  namespace: default
+data:
+  special.how: very
+  special.type: charm
+  
+----------------------------------------------------------------------------------
+k8s>> kubectl get pod dapi-test-pod -o yaml
+apiVersion: v1   
+kind: Pod   
+metadata:   
+  name: dapi-test-pod   
+spec:   
+  containers:   
+    - name: test-container   
+      image: registry.k8s.io/busybox   
+      command: [ "/bin/sh", "-c", "env" ]   
+      env:   
+        # Define the environment variable
+        - name: SPECIAL_LEVEL_KEY   
+          valueFrom:   
+            configMapKeyRef:   
+              # The ConfigMap containing the value you want to assign to SPECIAL_LEVEL_KEY   
+              name: special-config
+              # Specify the key associated with the value
+              key: special.how
+  restartPolicy: Never  
+
+---------------------------------------------------------------------------------------------
+
+
+k8s>> kubectl get configmap special-config -o yaml
+apiVersion: v1
+kind: ConfigMap
+metadata: 
+  name: special-config
+data:
+  SPECIAL_LEVEL: very
+  SPECIAL_TYPE: charm  
+  
+
+
+k8s>> kubectl get pod dapi-test-pod -o yaml
+apiVersion: v1  
+kind: Pod  
+metadata:  
+  name: dapi-test-pod  
+spec:
+  containers:
+    - name: test-container
+      image: registry.k8s.io/busybox
+      command: [ "/bin/sh", "-c", "env" ]  
+      envFrom:  
+      - configMapRef:  
+          name: special-config
+  restartPolicy: Never  
+
+
+
+*********** Add ConfigMap data to a Volume *****************
+
+apiVersion: v1
+kind: ConfigMap
+metadata: 
+  name: special-config
+data:
+  SPECIAL_LEVEL: very
+  SPECIAL_TYPE: charm  
+  
+  
+apiVersion: v1
+kind: Pod
+metadata:
+  name: dapi-test-pod
+spec:
+  containers:
+    - name: test-container
+      image: registry.k8s.io/busybox
+      command: [ "/bin/sh", "-c", "ls /etc/config/" ]
+      volumeMounts:
+      - name: config-volume
+        mountPath: /etc/config
+  volumes:
+    - name: config-volume
+      configMap:
+        name: special-config
+  restartPolicy: Never 
+  
+------------------------------------------------------  
