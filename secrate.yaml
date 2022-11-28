@@ -1,1 +1,0 @@
-kubectl get secret sec-from-spec -o jasonpath='{.data.DB_USER_NAME}' | base64 --decode
