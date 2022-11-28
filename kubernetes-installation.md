@@ -14,13 +14,9 @@ Pre-Requisites
 
 sudo apt install docker.io -y
 
-sudo usermod -aG docker e00049
+sudo usermod -aG docker e00049 && newgrp docker
 
-sudo systemctl status docker
-
-sudo systemctl start docker
-
-sudo systemctl enable docker
+sudo systemctl start docker && sudo systemctl enable docker
 
 # Step 02: Add the Kubernetes signing key on both the Machines
 
@@ -55,10 +51,8 @@ sudo apt-add-repository "deb http://apt.kubernetes.io/ kubernetes-xenial main"
  
  # Step 07: Deploy a Pod Network through the master node
  
-  sudo kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
+  sudo kubectl apply -f https://github.com/weaveworks/weave/releases/download/v2.8.1/weave-daemonset-k8s.yaml
 
-
-  kubectl get pods --all-namespaces
   
  # To apply Tag for worker
  sudo kubectl label node worker.example.com node-role.kubernetes.io/worker=worker
