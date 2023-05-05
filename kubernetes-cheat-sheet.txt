@@ -1,0 +1,9 @@
+List of componetes:
+pod
+service
+daemonset
+deployment
+replicaset
+statefulset
+job
+cronjobs
