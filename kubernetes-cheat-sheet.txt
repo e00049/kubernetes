@@ -1,9 +1,50 @@
 List of componetes:
-pod
-service
-daemonset
-deployment
-replicaset
-statefulset
-job
-cronjobs
+Kubernetes is a complex system composed of many different components that work together to manage containerized applications. Here are some of the main components in Kubernetes:
+
+API server: The API server is the primary management component in Kubernetes. It exposes the Kubernetes API, which is used to manage the cluster.
+
+etcd: etcd is a distributed key-value store that is used to store the state of the Kubernetes cluster. It is used by the API server, as well as other components, to store configuration data and cluster state.
+
+kube-scheduler: The kube-scheduler is responsible for scheduling pods onto nodes in the cluster, based on resource requirements, node capacity, and other factors.
+
+kube-controller-manager: The kube-controller-manager is a collection of controllers that are responsible for maintaining the desired state of the cluster. These controllers include the node controller, the replication controller, and the endpoint controller.
+
+kubelet: The kubelet is an agent that runs on each node in the cluster. It is responsible for starting and stopping containers, and for reporting the status of the node to the rest of the cluster.
+
+kube-proxy: The kube-proxy is a network proxy that runs on each node in the cluster. It is responsible for forwarding traffic to the appropriate pod, based on the pod's IP address.
+
+Container runtime: The container runtime is the software that is used to run containers on the nodes in the cluster. Kubernetes supports a variety of container runtimes, including Docker, containerd, and CRI-O.
+
+
+
+In Kubernetes, resources are the computing units that are requested and allocated to run containers. The following are the main types of resources in Kubernetes:
+
+Pods: A pod is the smallest deployable unit in Kubernetes, and it represents a single instance of a running process. It can contain one or more containers that share the same network namespace and storage volumes.
+
+ReplicaSets: A ReplicaSet is a higher-level abstraction that manages a set of identical pods, ensuring that a specified number of replicas is always running.
+
+Deployments: A Deployment is another higher-level abstraction that manages ReplicaSets and provides declarative updates for pods and ReplicaSets.
+
+Services: A Service provides network connectivity to a set of pods, and it is responsible for load balancing traffic between the pods.
+
+ConfigMaps and Secrets: ConfigMaps and Secrets are Kubernetes resources that can be used to manage configuration data and sensitive information, such as passwords and API keys.
+
+StatefulSets: A StatefulSet is a higher-level abstraction that manages a set of stateful pods, ensuring that each pod has a unique identity and persistent storage.
+
+Jobs and CronJobs: Jobs and CronJobs are used to run batch processes and scheduled tasks, respectively.
+
+
+
+Types of services: 
+In Kubernetes, there are several types of services that can be used to expose and connect to a set of pods. These include:
+
+ClusterIP: This is the default service type, which provides a stable IP address and DNS name for pods within the same cluster. It can be accessed only from within the cluster.
+
+NodePort: This type of service exposes the pods on a static port on each node in the cluster. It can be accessed from outside the cluster using the node's IP address and the specified port.
+
+LoadBalancer: This type of service provides an external load balancer that distributes traffic to the pods. It can be used with cloud providers that support load balancers, such as AWS or Google Cloud.
+
+ExternalName: This type of service maps the service to a DNS name instead of an IP address. It can be used to expose an external service to the cluster.
+
+Headless: This type of service is used for stateful sets, and it disables the default load balancing behavior. Instead, it returns the DNS names of the pods directly to the client.
+
