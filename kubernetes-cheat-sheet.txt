@@ -48,3 +48,7 @@ ExternalName: This type of service maps the service to a DNS name instead of an 
 
 Headless: This type of service is used for stateful sets, and it disables the default load balancing behavior. Instead, it returns the DNS names of the pods directly to the client.
 
+
+To list out all resources:
+
+$ kubectl get all    
