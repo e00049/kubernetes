@@ -52,3 +52,4 @@ Headless: This type of service is used for stateful sets, and it disables the de
 To list out all resources:
 
 $ kubectl get all    
+$ kubectl exec -it <pod-name> -n namespace
