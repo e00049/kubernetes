@@ -54,3 +54,5 @@ To list out all resources:
 $ kubectl get all    
 $ kubectl exec -it <pod-name> -n namespace
 $ kubectl apply -f deployment.yaml
+$ kubectl api-resources
+
