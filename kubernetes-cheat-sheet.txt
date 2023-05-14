@@ -56,3 +56,4 @@ $ kubectl exec -it <pod-name> -n namespace
 $ kubectl apply -f deployment.yaml
 $ kubectl api-resources
 $ kubectl describe pod/pod-name -n namespace
+$ kubectl run -i --tty busybox --image=busybox --restart=Never -- sh
