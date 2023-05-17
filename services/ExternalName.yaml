@@ -1,0 +1,38 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-deployment
+  namespace: e00049 
+  labels:
+    app: my-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: my-deployment
+  template:
+    metadata:
+      labels:
+        app: my-deployment
+    spec:
+      containers:
+      - image: docker.io/e00049/ubuntu:v1.0.0
+        name: busybox
+        command: ["sh", "-c", "while true; do date >> /tmp/date.log; sleep 1; done"]  
+        env:
+           - name: DATABASE_HOST
+             value: mysql-service.e00049.svc.cluster.local 
+           - name: DATABASE_PORT
+             value: "3306" 
+           - name: DATABASE_USERNAME
+             value: google
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql-service
+  namespace: e00049   
+spec:
+  type: ExternalName
+  externalName: ec2-35-86-196-217.us-west-2.compute.amazonaws.com
