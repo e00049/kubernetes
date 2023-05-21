@@ -57,3 +57,5 @@ $ kubectl apply -f deployment.yaml
 $ kubectl api-resources
 $ kubectl describe pod/pod-name -n namespace
 $ kubectl run -i --tty busybox --image=busybox --restart=Never -- sh
+$ kubectl get pod --selector=env=dev
+
