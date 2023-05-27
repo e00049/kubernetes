@@ -1,0 +1,16 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: my-cronjob
+  namespace: e00049
+spec:
+  schedule: "*/1 * * * *"   # Set the desired cron schedule (every 5 minutes in this example)
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: my-container
+            image: ubuntu:latest   # Use the Ubuntu image or replace it with your desired image
+            command: ["echo", "Hello, Kubernetes!"]
+          restartPolicy: OnFailure
