@@ -1,0 +1,58 @@
+kubectl config current-context
+kubectl config get-contexts
+
+openssl genrsa -out kadhiravan.key 2048
+openssl rsa -in kadhiravan.key -pubout -out kadhiravan.pub
+openssl req -new -key kadhiravan.key -out kadhiravan.csr -subj "/CN=kadhiravan
+
+openssl x509 -req -in kadhiravan.csr -CA /etc/kubernetes/pki/ca.crt -CAkey /etc/kubernetes/pki/ca.key  -CAcreateserial -out kadhiravan.crt -days 2
+				  
+// echo "<BASE64_ENCODED_CERTIFICATE>" | base64 --decode > user.crt
+
+kubectl create secret generic kadhiravan-credentials --from-file=kadhiravan.key --from-file=kadhiravan.pub --namespace=e00049
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: kadhiravan-role
+  namespace: e00049  
+rules:
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs: ["get", "list"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: kadhiravan-role-binding
+  namespace: e00049  
+subjects:
+- kind: User
+  name: kadhiravan
+roleRef:
+  kind: Role
+  name: kadhiravan-role
+  apiGroup: rbac.authorization.k8s.io
+ 
+ 
+kubectl config set-cluster my-cluster 
+        --server=https://10.0.4.161:6443 
+		--certificate-authority=/etc/kubernetes/pki/ca.crt 
+		--kubeconfig=kadhiravan.kubeconfig
+									  
+kubectl config set-credentials kadhiravan 
+        --client-certificate=kadhiravan.crt 
+		--client-key=kadhiravan.key 
+		--kubeconfig=kadhiravan.kubeconfig
+		
+											
+kubectl config set-context my-context 
+        --cluster=my-cluster 
+		--namespace=e00049 
+		--user=kadhiravan 
+		--kubeconfig=kadhiravan.kubeconfig
+									  
+kubectl config use-context my-context 
+        --kubeconfig=kadhiravan.kubeconfig 
