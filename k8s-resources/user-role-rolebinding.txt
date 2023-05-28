@@ -1,3 +1,4 @@
+-->> Custom Kube-config file <<--
 kubectl config current-context
 kubectl config get-contexts
 
@@ -36,23 +37,10 @@ roleRef:
   name: kadhiravan-role
   apiGroup: rbac.authorization.k8s.io
  
- 
-kubectl config set-cluster my-cluster 
-        --server=https://10.0.4.161:6443 
-		--certificate-authority=/etc/kubernetes/pki/ca.crt 
-		--kubeconfig=kadhiravan.kubeconfig
+kubectl config set-cluster my-cluster --server=https://10.0.4.161:6443 --certificate-authority=/etc/kubernetes/pki/ca.crt --kubeconfig=kadhiravan.kubeconfig
 									  
-kubectl config set-credentials kadhiravan 
-        --client-certificate=kadhiravan.crt 
-		--client-key=kadhiravan.key 
-		--kubeconfig=kadhiravan.kubeconfig
-		
-											
-kubectl config set-context my-context 
-        --cluster=my-cluster 
-		--namespace=e00049 
-		--user=kadhiravan 
-		--kubeconfig=kadhiravan.kubeconfig
+kubectl config set-credentials kadhiravan --client-certificate=kadhiravan.crt --client-key=kadhiravan.key --kubeconfig=kadhiravan.kubeconfig
+									
+kubectl config set-context my-context --cluster=my-cluster --namespace=e00049 --user=kadhiravan --kubeconfig=kadhiravan.kubeconfig
 									  
-kubectl config use-context my-context 
-        --kubeconfig=kadhiravan.kubeconfig 
+kubectl config use-context my-context --kubeconfig=kadhiravan.kubeconfig 
