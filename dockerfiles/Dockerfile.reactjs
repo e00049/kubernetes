@@ -11,7 +11,7 @@ RUN apt-get update && \
     apt-get install -y nodejs
 
 # Copy the package.json and package-lock.json files to the container
-COPY package*.json ./
+COPY ./reactjs/package*.json ./
 
 # Install the project dependencies
 RUN npm install
