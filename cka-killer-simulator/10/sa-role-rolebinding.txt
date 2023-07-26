@@ -1,0 +1,11 @@
+Create SA, Role and Role binding in NameSpace project-hamster
+
+01. Create Role Binding:
+    $ kubectl -n project-hamster create sa processor 
+
+02. Create Role:
+    $ kubectl -n project-hamster create role processor --verb=create --resource=secrets --resource=configmap 
+
+03. Create Role Binding:
+    $ kubectl  -n project-hamster create rolebinding --role=processor --serviceaccount project-master:processor
+    
