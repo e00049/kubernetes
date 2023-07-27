@@ -12,6 +12,8 @@ Pre-Requisites
 
 # Step: 01:  Install Docker on Master and Work Machines.
 
+sudo apt update
+
 sudo apt install docker.io -y
 
 sudo usermod -aG docker e00049 && newgrp docker
