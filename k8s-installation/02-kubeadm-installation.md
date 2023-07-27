@@ -43,7 +43,7 @@ sudo apt-add-repository "deb http://apt.kubernetes.io/ kubernetes-xenial main"
  
  sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
  
- sudo chown $(id -u):$(id -g) $HOME/.kube/config
+ sudo chown  $(id -u):$(id -g) $HOME/.kube/config
  
  # Step 06: RUN this on Master machine and OUTPUT past on worker Nodes with SUDO user mode
  
