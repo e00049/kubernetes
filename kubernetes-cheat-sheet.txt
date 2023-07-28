@@ -59,4 +59,5 @@ $ kubectl describe pod/pod-name -n namespace
 $ kubectl run -i --tty busybox --image=busybox --restart=Never -- sh
 $ kubectl get pod --selector env=dev --no-headers -n dev
 $ kubectl get pod -A --sort-by=.metadata.creationTimestamp
+$ systemctl daemon-reload && systemctl restart kubelet 
 
