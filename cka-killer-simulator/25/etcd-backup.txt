@@ -1,0 +1,19 @@
+# ETCDCTL_API=3 etcdctl snapshot save /tmp/etcd-bacup.db \
+  --cert=/etc/kubernetes/pki/etcd/server.crt \
+  --key=/etc/kubernetes/pki/etcd/server.key \
+  --cacert=/etc/kubernetes/pki/etcd/ca.crt 
+
+# kubectl run pod-25 --image=nginx 
+
+# mv /etc/kubernetes/manifest/etcd.yaml .
+
+# ETCDCTL_API=3 etcdctl snapshot restore /tmp/etcd-bacup.db
+  --data-dir /var/lib/etcd-backup \
+  --cert=/etc/kubernetes/pki/etcd/server.crt \
+  --key=/etc/kubernetes/pki/etcd/server.key \
+  --cacert=/etc/kubernetes/pki/etcd/ca.crt 
+
+# vi etcd.yaml -   - hostPath:
+                        path: /var/lib/etcd-backup  
+
+# mv ../*.yaml /etc/kuberentes/manifest 
