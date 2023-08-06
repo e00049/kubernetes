@@ -12,6 +12,8 @@ Pre-Requisites
 
 # Step: 01:  Install Docker on Master and Work Machines.
 
+sudo swapoff -a
+
 sudo apt update
 
 sudo apt install docker.io -y
@@ -63,3 +65,5 @@ sudo apt-add-repository "deb http://apt.kubernetes.io/ kubernetes-xenial main"
 .
 .
 Source: https://phoenixnap.com/kb/install-kubernetes-on-ubuntu
+Source: containerd instllation - https://www.techrepublic.com/article/install-containerd-ubuntu/
+
