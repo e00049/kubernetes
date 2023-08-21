@@ -68,3 +68,4 @@ kubectl rollout undo deployment/frontend --to-revision=2         # Rollback to a
 kubectl rollout status -w deployment/frontend                    # Watch rolling update status of "frontend" deployment until completion
 kubectl rollout restart deployment/frontend                      # Rolling restart of the "frontend" deployment
 
+kubectl explain pods 
