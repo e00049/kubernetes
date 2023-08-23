@@ -69,3 +69,4 @@ kubectl rollout status -w deployment/frontend                    # Watch rolling
 kubectl rollout restart deployment/frontend                      # Rolling restart of the "frontend" deployment
 
 kubectl explain pods 
+kubectl get services --sort-by=.metadata.name
