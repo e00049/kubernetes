@@ -70,3 +70,7 @@ kubectl rollout restart deployment/frontend                      # Rolling resta
 
 kubectl explain pods 
 kubectl get services --sort-by=.metadata.name
+
+kubectl taint nodes gke-e00049-workspace-clu-default-pool-8200be75-nz6c env=dev:NoExecute  # set taint
+kubectl taint nodes gke-e00049-workspace-clu-default-pool-8200be75-nz6c env=dev:NoExecute- # remove taint
+
