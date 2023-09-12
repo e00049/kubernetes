@@ -75,4 +75,6 @@ kubectl taint nodes gke-e00049-workspace-clu-default-pool-8200be75-nz6c env=dev:
 kubectl taint nodes gke-e00049-workspace-clu-default-pool-8200be75-nz6c env=dev:NoExecute- # remove taint
 
 kubectl config set-context --current projecta
+kubectl get pods --show-labels
+
 
