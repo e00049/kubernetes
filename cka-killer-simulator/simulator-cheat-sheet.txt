@@ -34,4 +34,12 @@ Create a new ServiceAccount processor in Namespace project-hamster. Create a Rol
 # kubectl -n project-hamster create rolebinding --role=processor --serivceaccount project-hamster=processor
 
 
+Question 19: | Create Secret and mount into Pod
+
+$ kubectl create namespace secret 
+
+$ kubectl -n secret run secret-pod --image=busybox $do -- sh -c "sleep 5d" > 19-pod.yaml
+
+$ kubectl -n secret create secret genaric secret2 --from-litral=user=user1 --from-literal=pass=123456 
+
 
