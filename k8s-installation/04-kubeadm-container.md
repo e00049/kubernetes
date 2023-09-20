@@ -1,4 +1,4 @@
-# Install Kubeadm, Kubectl and Kubelet
+# Kubernetes Install On Ubuntu with ContainerD, Kubeadm, Kubectl and Kubelet
 ## sudo apt update 
 ## sudo apt install -y apt-transport-https ca-certificates curl software-properties-common 
 ## curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add - 
