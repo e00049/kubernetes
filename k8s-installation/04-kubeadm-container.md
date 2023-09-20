@@ -1,25 +1,25 @@
-## Install Kubeadm, Kubectl and Kubelet
-# sudo apt update 
-# sudo apt install -y apt-transport-https ca-certificates curl software-properties-common 
-# curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add - 
-# sudo add-apt-repository "deb https://apt.kubernetes.io/ kubernetes-xenial main" 
-# sudo apt update 
-# sudo apt-get install -y  kubeadm kubelet kubectl containerd 
+# Install Kubeadm, Kubectl and Kubelet
+## sudo apt update 
+## sudo apt install -y apt-transport-https ca-certificates curl software-properties-common 
+## curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add - 
+## sudo add-apt-repository "deb https://apt.kubernetes.io/ kubernetes-xenial main" 
+## sudo apt update 
+## sudo apt-get install -y  kubeadm kubelet kubectl containerd 
 
-## Install ContainerD on Ubuntu Machine
-# sudo mkdir -p /etc/containerd 
-# sudo chown $USER:$USER /etc/containerd  
-# sudo containerd config default > /etc/containerd/config.toml 
-# sudo modprobe br_netfilter 
-# sudo sysctl net.ipv4.ip_forward=1 
-# sudo systemctl restart containerd 
-# sudo systemctl enable containerd 
+# Install ContainerD on Ubuntu Machine
+## sudo mkdir -p /etc/containerd 
+## sudo chown $USER:$USER /etc/containerd  
+## sudo containerd config default > /etc/containerd/config.toml 
+## sudo modprobe br_netfilter 
+## sudo sysctl net.ipv4.ip_forward=1 
+## sudo systemctl restart containerd 
+## sudo systemctl enable containerd 
 
-## Inilizated the pod network with defined range
-sudo kubeadm init --pod-network-cidr=10.244.0.0/16
+# Inilizated the pod network with defined range
+## sudo kubeadm init --pod-network-cidr=10.244.0.0/16
 
-## Apply CNI - Weave Network
-kubectl apply -f https://github.com/weaveworks/weave/releases/download/v2.8.1/weave-daemonset-k8s.yaml
+# Apply CNI - Weave Network
+## kubectl apply -f https://github.com/weaveworks/weave/releases/download/v2.8.1/weave-daemonset-k8s.yaml
 
-## Get nodes
-kubectl get nodes
+# Get nodes
+## kubectl get nodes
