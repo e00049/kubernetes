@@ -1,4 +1,4 @@
-# Kubernetes Install On Ubuntu with ContainerD, Kubeadm, Kubectl and Kubelet
+## Kubernetes Install On Ubuntu with ContainerD, Kubeadm, Kubectl and Kubelet
  sudo apt update 
  sudo apt install -y apt-transport-https ca-certificates curl software-properties-common 
  curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add - 
@@ -17,4 +17,4 @@
  sudo kubeadm init --pod-network-cidr=10.244.0.0/16
  kubectl apply -f https://github.com/weaveworks/weave/releases/download/v2.8.1/weave-daemonset-k8s.yaml
 
-## kubectl get nodes
+ kubectl get nodes
