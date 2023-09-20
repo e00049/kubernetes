@@ -6,7 +6,6 @@
 ## sudo apt update 
 ## sudo apt-get install -y  kubeadm kubelet kubectl containerd 
 
-# Install ContainerD on Ubuntu Machine
 ## sudo mkdir -p /etc/containerd 
 ## sudo chown $USER:$USER /etc/containerd  
 ## sudo containerd config default > /etc/containerd/config.toml 
@@ -15,11 +14,8 @@
 ## sudo systemctl restart containerd 
 ## sudo systemctl enable containerd 
 
-# Inilizated the pod network with defined range
 ## sudo kubeadm init --pod-network-cidr=10.244.0.0/16
 
-# Apply CNI - Weave Network
 ## kubectl apply -f https://github.com/weaveworks/weave/releases/download/v2.8.1/weave-daemonset-k8s.yaml
 
-# Get nodes
 ## kubectl get nodes
