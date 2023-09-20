@@ -1,6 +1,7 @@
+## Install Kubeadm, Kubectl and Kubelet
 sudo apt update 
-sudo apt install -y apt-transport-https ca-certificates curl software-properties-common && \
-curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add - && \
+sudo apt install -y apt-transport-https ca-certificates curl software-properties-common 
+curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add - 
 sudo add-apt-repository "deb https://apt.kubernetes.io/ kubernetes-xenial main" 
 sudo apt update 
 sudo apt-get install -y  kubeadm kubelet kubectl containerd 
