@@ -25,6 +25,11 @@ sudo systemctl enable containerd
 # Initialize the Kubernetes cluster
 sudo kubeadm init --pod-network-cidr=10.244.0.0/16
 
+# Copy the Config file 
+mkdir -p $HOME/.kube
+sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+sudo chown $(id -u):$(id -g) $HOME/.kube/config
+
 # Deploy a network plugin (Weave in this case)
 kubectl apply -f https://github.com/weaveworks/weave/releases/download/v2.8.1/weave-daemonset-k8s.yaml
 
