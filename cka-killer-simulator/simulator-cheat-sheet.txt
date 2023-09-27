@@ -1,45 +1,149 @@
-# create shortcuts in vim editor
+cks exam
+# For VIM editor:
 
-~/.vimrc
-set tabstop=2
-set expandtab
 set shiftwidth=2
+set expandtab
+set tabstop=2
 
-# Enviroment variable:
-export do="--dry-run=client -o yaml"
+export do="--dry-run=client -o yaml "
+alias kf="kubectl apply -f "
 
-Question 1: Contexts:
+# Question 1 | Contexts:
 
-You have access to multiple clusters from your main terminal through kubectl contexts. 
-Write all those context names into /opt/course/1/contexts.
+You have access to multiple clusters from your main terminal through 
+kubectl texsts.  Write all those context names into /opt/course/1/contexts.
 
-Next write a command to display the current context into /opt/course/1/context_default_kubectl.sh
+Newxt write a command to display the current context into /opt/course/1/context_default_kubectl.sh. the command should use kubectl
 
-Finally write a second command doing the same thingng into /opt/course/1/context_default_no?kubectl.sh, but without the use of kubectl.
+Finally write a second command doing the same thing into /opt/osurse/1/context_default_no_kubectl.sh but without the use of kubectl. 
 
-Answers are:
-# kubectl config get-contexts -o name > /opt/course/1/contexts
-# echo "kubectl config current-context" > /opt/course/1/context_default_kubectl.sh
-# echo "cat ~/.kube/config | grep current | sed -e 's/current-context: //' " > /opt/course/1/context_default_no_kubectl.sh
-
-
-Question 10: RBAC ServiceAccount Role RoleBinding:
-
-Create a new ServiceAccount processor in Namespace project-hamster. Create a Role and RoleBinding, both named processor as well.  These should allow the new SA to only create Secrets and ConfigMaps in that Namespace. 
-
-# kubectl -n project-hamster create sa processor
-
-# kubectl -n project-hamster create role processor --verb=create --resource=secrets --resource=configmap 
-
-# kubectl -n project-hamster create rolebinding --role=processor --serivceaccount project-hamster=processor
+Answers:
+    $ kubectl config get-contexts -o name
+    $ kubectl config current-context 
+    $ cat ~/.kube/config | grep current | sed -e 's/surrent-context: // 
 
 
-Question 19: | Create Secret and mount into Pod
+Question 02: Shedule Pod on Matser Node:
+    Use context: kubectl config use-context k8s-c1-H
 
-$ kubectl create namespace secret 
+create a single pod of image httpd: 2.4.41-alpine in namespace default. The pod should baned pod1
+and the container should be named pod1-container. this pod should only be scheduled on a mster node, 
+do not add new labesl any nodes.
 
-$ kubectl -n secret run secret-pod --image=busybox $do -- sh -c "sleep 5d" > 19-pod.yaml
+Answer:
+$ kubectl get node 
+$ kubectgl descibe node cluster1-master1 | grep Taint -A1
+$ kubectl run pod1 --image=httpd:2.4.1  $do > 2.yaml
 
-$ kubectl -n secret create secret genaric secret2 --from-litral=user=user1 --from-literal=pass=123456 
+apiVersion: v1
+Kind: Pod
+Metadata:
+    labels:
+        app: pod1
+    name: pod1
+spec:
+    containers:
+    - name: pod1-container
+      image: httpd
+    tolerations:    
+    - effect:   NoSchedule
+      key: node-role.kubernetes.io/control-plane
+    nodeSelector:
+        node-role.kubernetes.io/control-plane: ""
 
+
+Question 03: Secal down statefulSet
+
+Use context: kubectl config use-context k8s-c1-H
+
+There are two pods named -3fb-* in Namespace project-c13. C13 Managemnt asked you to scale the pod
+down to one replca to save resources.
+
+Answer:
+
+Kubectl -n project-c13 get sts
+
+$ kubectl -n project-c13 scale sts o3db --replicas 1
+
+Questions 04:
+
+Do the following in Namespace default. Creae a single pod named ready-if-serice -ready pf image nginx:1.16.1-alpine. 
+Configured a LivenessProbe which simple runs true.  Also configure a REadinessProbe which does check if the url httpd://service-am-i ready:80
+is reacble, you can use wget -T2 -o- httpd://serive-ami-i-ready:80 for this 
+Start the pod abd configure it isn't ready because of the ReadinessProbe.
+
+Create a scind pid a=named am-i-ready of image nginx:1.6 with label id:cross-server-ready.  thealead existing service service-am-i-ready should now have that second pod as endpoint. 
+
+Now the first pod should be in ready state, confirm that. 
+
+Answer:
+
+    It's a bit an anti-pttern for one Pod to check another Pod for being ready using probes, Hence the normally avaible readinesdProbe.httpdGet doesn't work for absoulte remote 
+    urls. Still the workaround requested in this task should show how probes and pod-service commiunutcvation works.
+
+$ kubectl run ready-if-serice-ready --image=nginx:1.24.1 $do > 4a.yaml
+
+apiVersion: v1
+Kind: Pod
+Metadata:
+    labels:
+        app: ready-if-serice-ready
+    name: ready-if-sercice-reaady
+Spec:
+    containers:
+    - name: ready-if-serice-ready
+      image: httpd:1.0.0
+      livenessProbe:
+        exec:           
+          command: 
+          - 'true'
+      readinessProbe:
+        exec:
+            command:
+            - sh
+            - -c
+            - "wget -T2 -O- http://service-am-i-ready:80"
+
+$ kubectl run am-i-ready --image=nginx $do > 4b.yaml
+
+
+Question 05:
+
+There are vauous pOds in all namespaces. Write a command into /opt/course/5/find_pods.sh
+which lists all pods sorted by their AGE (metadata.creationTimeStamp)
+
+Write a second command into /opt/course/5/find_pods_uid.sh
+which lists all Pods sorted by field metadata.uid. Use kubectl sorting for both commands.
+
+$ kubectl get pod -A --sort-by=.metadata.creationsTimeStacmp
+
+$ kubectl get pod -A --sort-by=.metadata.uid
+
+
+Question 6: Stoage, PV, PVC, and Pod Volume:
+
+Create a  new PersistentVolume named safari-pv. It should have a capcity of 2Gi.
+accessMode REadwriteOnce, hostPath /volume/Data and no StorageClassNmae defined.
+
+Next create a new PersistentVolumeClaim in Namespace project-tiger named safari-pvs. 
+
+It should request 2Gi storage, accessMode REadWriteOnce and should not define a SorageClassName. 
+The PVC should bound tothe PV correctly.
+
+Finally create a new Deployment dafari in Namespace project-tiger which mouhts that volumeat /tmp/safari-data.
+The pods of the Deployment should be of image httpd:2.5.-alpine
+
+Step 01: Create PV
+
+apiVersion: v1
+kind: persistentVolume
+metadata:
+    name: safari-pv
+spec:
+    capacity: 
+        storage: 2Gi
+    accessModes:
+    - readWriteOnce
+    hostPath:   
+        path: "/volumes/Data"
 
