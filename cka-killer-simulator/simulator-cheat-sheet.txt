@@ -147,3 +147,62 @@ spec:
     hostPath:   
         path: "/volumes/Data"
 
+
+Question 19: Create Secret and Mount into Pod
+
+Do the following in a new Namespace secret.  Create a Pod named secret-pod of image 
+busybox:1.31.1 which should keep running for some time.
+
+There is an exiting Secret located at /opt/course/19/secret1.yaml.
+Create it in the Namespace secret and mount it readonly into the Pod at /tmp/secret1
+
+Create a new secret in Namespace secret called secret2 which should contain user=user1 
+and pass=1234.  These entries should be avaible inside the pod's container 
+as environment variables APP_USER and APP_PASS 
+
+confirm everything is working. 
+
+Answer: 
+
+$ cp /opt/course/19/secret1.yaml . 
+
+change the namespace name: secret 
+
+To Create new secret as secret2 
+
+$ kubectl -n secret create secret generic secret2 --from-literal=user=user1 --from-literal=pass=1234
+
+$ kubectl -n secret run secret-pod --image=busybox:1.12.1 $do -- sh -c "sleep 1d"  > 19.yaml
+
+apiVersion: v1
+kind: pod
+metadata:
+  labels:
+    app: secret-pod
+  name: secret-pod
+spec:
+  volumes:
+  - name: secret2
+    secret:
+      secretName: secret1
+  containers:
+  - name: containers
+    image: busybox:1.11.1
+    args:
+    - sh
+    - -c 
+    - sleep 1d
+    env:
+    - name: APP_USER
+      valueFrom:
+	    secretKeyRef:
+	      name: user
+	      key: secret2
+    - name: APP-PASS
+      valueFrom:
+	    secretKeyRef:
+	      name: pass
+	      key: secret2
+    mountVolumes:
+    -  name: secret2
+       mountPath: /tmp/secret
