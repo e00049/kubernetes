@@ -1,208 +1,395 @@
-cks exam
-# For VIM editor:
+Question 01: Contexts:
 
-set shiftwidth=2
-set expandtab
-set tabstop=2
+You have access to multiple clusters from your main terminal through kubectl contex.
+Write all those context names into /opt/course/1/contexts.
 
-export do="--dry-run=client -o yaml "
-alias kf="kubectl apply -f "
+Now write a command to display the current context into /opt/course/1/context_default_kubectl.sh
 
-# Question 1 | Contexts:
-
-You have access to multiple clusters from your main terminal through 
-kubectl texsts.  Write all those context names into /opt/course/1/contexts.
-
-Newxt write a command to display the current context into /opt/course/1/context_default_kubectl.sh. the command should use kubectl
-
-Finally write a second command doing the same thing into /opt/osurse/1/context_default_no_kubectl.sh but without the use of kubectl. 
-
-Answers:
-    $ kubectl config get-contexts -o name
-    $ kubectl config current-context 
-    $ cat ~/.kube/config | grep current | sed -e 's/surrent-context: // 
-
-
-Question 02: Shedule Pod on Matser Node:
-    Use context: kubectl config use-context k8s-c1-H
-
-create a single pod of image httpd: 2.4.41-alpine in namespace default. The pod should baned pod1
-and the container should be named pod1-container. this pod should only be scheduled on a mster node, 
-do not add new labesl any nodes.
-
-Answer:
-$ kubectl get node 
-$ kubectgl descibe node cluster1-master1 | grep Taint -A1
-$ kubectl run pod1 --image=httpd:2.4.1  $do > 2.yaml
-
-apiVersion: v1
-Kind: Pod
-Metadata:
-    labels:
-        app: pod1
-    name: pod1
-spec:
-    containers:
-    - name: pod1-container
-      image: httpd
-    tolerations:    
-    - effect:   NoSchedule
-      key: node-role.kubernetes.io/control-plane
-    nodeSelector:
-        node-role.kubernetes.io/control-plane: ""
-
-
-Question 03: Secal down statefulSet
-
-Use context: kubectl config use-context k8s-c1-H
-
-There are two pods named -3fb-* in Namespace project-c13. C13 Managemnt asked you to scale the pod
-down to one replca to save resources.
+Finally write a second command doing the same thing into /opt/course/1/context_default_no_kubectl.sh but without the use of kubectl.
 
 Answer:
 
-Kubectl -n project-c13 get sts
+kubectl config get-contexts -o name
 
-$ kubectl -n project-c13 scale sts o3db --replicas 1
+echo "kubectl config current-context " > /opt/course/1/context_default_kubectl.sh
 
-Questions 04:
+echo 'cat ~/.kube/config  | grep current  | sed -e "s/current-context: //"' > /opt/course/1/context_default_no_kubectl.sh
 
-Do the following in Namespace default. Creae a single pod named ready-if-serice -ready pf image nginx:1.16.1-alpine. 
-Configured a LivenessProbe which simple runs true.  Also configure a REadinessProbe which does check if the url httpd://service-am-i ready:80
-is reacble, you can use wget -T2 -o- httpd://serive-ami-i-ready:80 for this 
-Start the pod abd configure it isn't ready because of the ReadinessProbe.
+__________________________________________________________________________________________________________________________
 
-Create a scind pid a=named am-i-ready of image nginx:1.6 with label id:cross-server-ready.  thealead existing service service-am-i-ready should now have that second pod as endpoint. 
-
-Now the first pod should be in ready state, confirm that. 
-
-Answer:
-
-    It's a bit an anti-pttern for one Pod to check another Pod for being ready using probes, Hence the normally avaible readinesdProbe.httpdGet doesn't work for absoulte remote 
-    urls. Still the workaround requested in this task should show how probes and pod-service commiunutcvation works.
-
-$ kubectl run ready-if-serice-ready --image=nginx:1.24.1 $do > 4a.yaml
-
-apiVersion: v1
-Kind: Pod
-Metadata:
-    labels:
-        app: ready-if-serice-ready
-    name: ready-if-sercice-reaady
-Spec:
-    containers:
-    - name: ready-if-serice-ready
-      image: httpd:1.0.0
-      livenessProbe:
-        exec:           
-          command: 
-          - 'true'
-      readinessProbe:
-        exec:
-            command:
-            - sh
-            - -c
-            - "wget -T2 -O- http://service-am-i-ready:80"
-
-$ kubectl run am-i-ready --image=nginx $do > 4b.yaml
+Question 02: Schedule Pod on Controlplane Node:
 
 
-Question 05:
-
-There are vauous pOds in all namespaces. Write a command into /opt/course/5/find_pods.sh
-which lists all pods sorted by their AGE (metadata.creationTimeStamp)
-
-Write a second command into /opt/course/5/find_pods_uid.sh
-which lists all Pods sorted by field metadata.uid. Use kubectl sorting for both commands.
-
-$ kubectl get pod -A --sort-by=.metadata.creationsTimeStacmp
-
-$ kubectl get pod -A --sort-by=.metadata.uid
-
-
-Question 6: Stoage, PV, PVC, and Pod Volume:
-
-Create a  new PersistentVolume named safari-pv. It should have a capcity of 2Gi.
-accessMode REadwriteOnce, hostPath /volume/Data and no StorageClassNmae defined.
-
-Next create a new PersistentVolumeClaim in Namespace project-tiger named safari-pvs. 
-
-It should request 2Gi storage, accessMode REadWriteOnce and should not define a SorageClassName. 
-The PVC should bound tothe PV correctly.
-
-Finally create a new Deployment dafari in Namespace project-tiger which mouhts that volumeat /tmp/safari-data.
-The pods of the Deployment should be of image httpd:2.5.-alpine
-
-Step 01: Create PV
-
-apiVersion: v1
-kind: persistentVolume
-metadata:
-    name: safari-pv
-spec:
-    capacity: 
-        storage: 2Gi
-    accessModes:
-    - readWriteOnce
-    hostPath:   
-        path: "/volumes/Data"
-
-
-Question 19: Create Secret and Mount into Pod
-
-Do the following in a new Namespace secret.  Create a Pod named secret-pod of image 
-busybox:1.31.1 which should keep running for some time.
-
-There is an exiting Secret located at /opt/course/19/secret1.yaml.
-Create it in the Namespace secret and mount it readonly into the Pod at /tmp/secret1
-
-Create a new secret in Namespace secret called secret2 which should contain user=user1 
-and pass=1234.  These entries should be avaible inside the pod's container 
-as environment variables APP_USER and APP_PASS 
-
-confirm everything is working. 
+Create a single Pod of Image httpd:2.4.41-alpine in Namespace default.
+The Pod should be named pod1 and the container should be named pod1-container.  
+This Pod should only be scheduled on a controlplane node, do not add new labels any nodes.
 
 Answer: 
 
-$ cp /opt/course/19/secret1.yaml . 
-
-change the namespace name: secret 
-
-To Create new secret as secret2 
-
-$ kubectl -n secret create secret generic secret2 --from-literal=user=user1 --from-literal=pass=1234
-
-$ kubectl -n secret run secret-pod --image=busybox:1.12.1 $do -- sh -c "sleep 1d"  > 19.yaml
+$ kubectl get node
+$ kubectl describe node kubenetes-master | grep Taints > text.txt
+$ kubectl run pod1 --image=httpd:2.4.41-alpine $do > 2.yaml
 
 apiVersion: v1
 kind: pod
 metadata:
-  labels:
-    app: secret-pod
-  name: secret-pod
+    labels:
+      app: pod1
 spec:
-  volumes:
-  - name: secret2
-    secret:
-      secretName: secret1
   containers:
-  - name: containers
-    image: busybox:1.11.1
-    args:
-    - sh
-    - -c 
-    - sleep 1d
-    env:
-    - name: APP_USER
-      valueFrom:
-	    secretKeyRef:
-	      name: user
-	      key: secret2
-    - name: APP-PASS
-      valueFrom:
-	    secretKeyRef:
-	      name: pass
-	      key: secret2
-    mountVolumes:
-    -  name: secret2
-       mountPath: /tmp/secret
+  - name: pod1-container
+    image: httpd:2.4.41-alpine
+  tolerations:
+  - effect: NoSchedule
+    key: node-role.kubernetes.io/control-plane
+  nodeSelector: 
+    node-role.kubernetes.io/control-plane: ""
+
+__________________________________________________________________________________________________________________________
+
+
+Question 03: Scale down StatefulSet
+
+There are two pods named o3db-* in Namespace project-c13. 
+c13 managment asked you to scale the pods down to one replica to save resources.
+
+Answer:
+
+kubectl get deployment,ds,sts,pod -n project-c13
+
+kubectl -n project-c13 scale sts o3db --replicas 1
+
+_______________________________________________________________________________________________________________________________
+
+Question 04: Pod Ready if Service is reachable:
+
+Do the following in Namespce default. Create  a single Pod named ready-if-service-ready of Image naginx:1.16.1-alpine. 
+Configre a LivenessProbe which simple executes command true. Also configure a 
+Readinessprobe which does check if the URL httpd://service-am-ready:80 is reachable, you can us wget -T2 -o- http://service-am-ready:80 for this.
+Start the Pod and confirm it isn't ready because of the REadinessProbe.
+
+Create a second Pod named am-i-ready of image nginx:1.16.1-apine with label Id: cross-server-ready.
+The already existing service service-am-i-ready shoudl now have that second pod as endpoint.
+
+$ kubectl run ready-if-service-ready --image=nginx:1.16.1-alpine $do > 4a.yaml
+
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    run: ready-if-service-ready
+  name: ready-if-service-ready
+spec:
+  containers:
+  - image: nginx:1.16.1-alpine
+    name: ready-if-service-ready
+    livenessProbe:
+      exec:
+        command:
+        - 'true'
+    readinessProbe:
+      exec:
+        command:
+        - sh
+        - -c
+        - "wget -T2 -O- http://service-am-i-ready:80"
+
+
+$ kubectl run am-i-ready --image=nginx:1.16.1-alpine $do > 4b.yaml        
+
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    run: am-i-ready
+  name: am-i-ready
+spec:
+  containers:
+  - image: nginx:1.16.1-alpine
+    name: am-i-ready
+
+$ kubectl get pod,service
+$ kubectl expose pod ready-if-service-ready --name service-am-i-ready  --port 80
+$ kubectl replace --force -f 4b.yaml
+
+__________________________________________________________________________________________________________________________
+
+Question 05: Kubectl sorting
+
+there are various Pod in all namespaces. Write a command into /opt/course/5/find_pod.sh which lists all Pods sorted by their AGE (metadata.creationTimestamp)
+
+Wrire a second command into /opt/course/5/find_pods_uid.sh which lists all Pods sorted by field metadata.uid. Use kubectl sorting for both commands.
+
+Answer:
+$ echo "kubectl get pod -A --sort-by=.metadata.creationTimestamp " > /opt/course/5/find_pods.sh
+
+$ echo "kubectl get pod -A --sort-by=.metadata.uid " > /opt/course/5/find_pods_uid.sh
+
+____________________________________________________________________________________________________________________________
+
+Question: 06  Srorage, PV, PVC, Pod Volume:
+
+Create a new PersistentVolume named safari-v. It should have a capacity of 2Gi.
+accessMode REadWriteOnce, hostPath /volmes/Data and no storageClassNmae define. 
+
+Next create a new PersistentVolumeClaim in Namespace Project-tiger Named safari-pvc. It should request 2Gi storage, accessMode ReadWrireOnce and should not define a storageClassName. 
+The PVC should bound to the PV correctly. 
+
+Finally create a new Deployment safari in Namespace project-tiger which mounts that Volume at /tmp/safari-data. 
+The Pod of that Deployment should be of image httpd:2.4.41-alpine. 
+
+Answer:
+
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: safari-pv
+spec:
+  capacity:
+    storage: 2Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/Volumes/Data"
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: safari-pvc
+  namespace: project-tiger
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2Gi
+
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: safari
+  name: safari
+  namespace: project-tiger
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: safari
+  template:
+    metadata:
+      labels:
+        app: safari
+    spec:
+      volumes:
+      - name: vol
+        persistentVolumeClaim:
+            claimName: safari-pvc
+      containers:
+      - image: httpd:2.4.41-alpine
+        name: project-tiger
+        volumeMounts:
+        - name: vol
+          mountPath: /tmp/safari-data
+
+
+____________________________________________________________________________________________________________________________________
+Question 07: Node and Pod Resource Usage:
+
+The metrics-server has been installed in the cluster. Your college would like to know the kubectl commands to:
+
+1. show Nodes resources Usage
+2. show Pods and their containers Usage
+
+Answer:
+
+$ echo "kubectl top node " > /opt/course/7/node.sh
+
+$ echo "kubectl top pod --containers=true" >  /opt/course/7/pod.sh
+
+
+Question 08:
+
+SSH into the controlpane node with ssh cluster1-controlplane1. Check how the controlplane componetes 
+kubelet, kube-apiserver, kube-scheduler, kube-controller-manager and etcd are started/installed on the controlplane node.
+
+also find out the name of the DNS application ans how its started/installed on the controlplane node.
+
+
+Write your findings into file /opt/course/8/controlplane-componets.txt 
+the file should be strucured like. 
+
+
+/opt/course/8/controlplane-components.txt
+kubelet: process
+kube-apiserver: static-pod
+kube-scheduler: static-pod
+kube-controller-manager: static-pod 
+etcd: static-pod
+dns: pod coredns
+
+_______________________________________________________________________________________________________________________________________
+
+Question 09:
+
+SSH into the controlplane ndoe with ssh cluster2-controlplanel. Temporrily kube-schduler, this means in a way that you can start it afain afterwards.
+
+Create a single pod named manual-schedule of image httpd:2.4-alpine. confirm its create but not scheduled on any node.
+
+Now you're the scheduler and have all its power, manually schedule that pod on node cluster2-controlplanel1. make sure its running.
+
+Start the kube-schduler again and confrim it running corrextly by creating a second pod named manula-scdedule2 of image httpd:2.4-alpine and check if it running on cluster2-node1
+
+
+Answer:
+
+$ sudo mv /etc/kubernetes/manifests/kube-scheduler.yaml 
+$ kubectl run manual-schedule --image=httpd:2.4-alpine $do > 9a.yaml
+
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: null
+  labels:
+    run: manual-schedule
+  name: manual-schedule
+spec:
+  nodeName: kubenetes-master
+  containers:
+  - image: httpd:2.4-alpine
+    name: manual-schedule
+
+
+$ sudo mv kube-scheduler.yaml /etc/kubernetes/manifests/
+$ kubectl run manual-schedule2 --image=httpd:2.4-alpine $do > 9b.yaml
+
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: null
+  labels:
+    run: manual-schedule2
+  name: manual-schedule2
+spec:
+  containers:
+  - image: httpd:2.4-alpine
+    name: manual-schedule2
+
+__________________________________________________________________________________________________________________________
+
+Question: 10 | RBAC ServiceAccount Role RoleBinding:
+
+Create a new ServiceAccount processor in Namespace project-hamster. 
+Create a Role and RoleBinding, both named processor as well. These should allow the new Sa to only create secret and configmaps in that Nmaespace.
+
+Answer:
+
+$ kubectl -n project-hamster create sa processor $do > 10a.yaml
+
+$ kubectl -n project-hamster create role processor --verb=create --resource=secret --resource=configmap $do > 10b.yaml
+
+$ kubectl -n project-hamster create rolebinding processor --role processor --serviceaccount project-hamster:processor $do > 10c.yaml
+
+$ kubectl -n project-hamster auth can-i create configmap --as system:serviceaccount:project-hamster:processor
+
+______________________________________________________________________________________________________________________________________
+
+
+Question 11: Create DaemonSet:
+
+Use Namespace project-tiger for the following. Create a DaemonSet named ds-important with image https:2.4.-alpine and labels id=ds-important and 
+uuid=1238344892-1481843-23834y1341. The Pods it creates should request 10 millicore cpu and 10 mebibyte memory. 
+The Pods of that DaemonSet should run on all nodes, also controlplanes.
+
+$ kubectl -n project-tiger create deploy --image=httpd:2.4-alpine  ds-important $do > 11.yaml
+
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  labels:
+    id: ds-important
+    uuid: 18426a0b-5f59-4e10-923f-c0e078e82462
+  name: ds-important
+  namespace: project-tiger
+spec:
+  selector:
+    matchLabels:
+      id: ds-important
+      uuid: 18426a0b-5f59-4e10-923f-c0e078e82462
+  template:
+    metadata:
+      labels:
+        id: ds-important
+        uuid: 18426a0b-5f59-4e10-923f-c0e078e82462
+    spec:
+      containers:
+      - image: httpd:2.4-alpine
+        name: httpd
+        resources:
+          requests:
+            cpu: 10m
+            memory: 10Mi
+      tolerations:
+      - effect: NoSchedule
+        key: node-role.kubernetes.io/control-plane
+
+_________________________________________________________________________________________________________________________________________
+
+Question 12: Deployment on all Nodes:
+
+Use Namespace project-tiger for the following. Crate a Deployment named deploy-important with label -d=very-importantat pod should have this label and 3 replicas. It should contains two containers. the first named container1 
+with image nginx:1.17.6-alpine and the second one named container2 with image kubernets/pause
+
+There should be onely every one Pod of the Deployment running on one worker node. We have two worker nodes: cluster1-node1 and cluster1-node2. Because the Deploymetn has three replicas the result  should be that bothe ndoes one pod is running. the thired Ood won't be scheduled, uncless a new worker node will ne added. 
+
+In a way we kind of simulate the behaviou of a Daemonset here but using Deployment and a fixed number of replicas.
+
+
+Solution:
+$ kubectl -n project-tiger create deploy --image=nginx:1.17.6-alpine deploy-important $do > 12.yaml
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    id: very-important
+  name: deploy-important
+  namespace: project-tiger
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      id: very-important
+  template:
+    metadata:
+      labels:
+        id: very-important
+    spec:
+      containers:
+      - image: httpd:2.4-alpine
+        name: container1
+      - image: httpd:2.4-alpine
+        name: container2
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: id
+                operator: In
+                values:
+                - very-important
+            topologyKey: "kubernetes.io/hostname"
+
+_________________________________________________________________________________________________________________________________________
+
