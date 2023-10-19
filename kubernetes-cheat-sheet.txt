@@ -80,3 +80,5 @@ kubectl get pods --show-labels
 kubectl get nodes -o json | jq -c "paths"  
 
 kubectl set serviceaccount deploy/web-dashboard dashboard-sa
+kubectl get pv --sort-by=.spec.capacity.storage > /opt/outputs/storage-capacity-sorted.txt
+
