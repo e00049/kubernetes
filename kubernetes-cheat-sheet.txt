@@ -90,3 +90,5 @@ kubectl create rolebinding dev-user-binding --namespace=default --user=dev-user 
 kubectl create clusterrole  storage-admin --verb=create,list,get,delete,watch --resource=persistentvolumes --resource=storageclasses  
 
 kubectl create clusterrolebinding michelle-storage-admin --clusterrole storage-admin --user michelle 
+
+kubectl certificate approve csr-name
