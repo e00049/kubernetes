@@ -34,7 +34,6 @@ StatefulSets: A StatefulSet is a higher-level abstraction that manages a set of 
 Jobs and CronJobs: Jobs and CronJobs are used to run batch processes and scheduled tasks, respectively.
 
 
-
 Types of services: 
 In Kubernetes, there are several types of services that can be used to expose and connect to a set of pods. These include:
 
@@ -92,3 +91,16 @@ kubectl create clusterrole  storage-admin --verb=create,list,get,delete,watch --
 kubectl create clusterrolebinding michelle-storage-admin --clusterrole storage-admin --user michelle 
 
 kubectl certificate approve csr-name
+
+apt-get update && apt-get install -y --allow-change-held-packages kubeadm=1.27.0-00 kubelet=1.27.0-00
+
+ETCDCTL_API=3 etcdctl snapshot save /opt/snapshot-pre-boot.db \
+  --endpoints=https://127.0.0.1:2379 \
+  --cert=/etc/kubernetes/pki/etcd/server.crt \
+  --key=/etc/kubernetes/pki/etcd/server.key \
+  --cacert=/etc/kubernetes/pki/etcd/ca.crt
+  
+change the etcd-data path - /var/lib/etcd-backup in /etc/kubebernetes/manifast/etcd.yaml  
+  
+ETCDCTL_API=3 etcdctl snapshot restore /opt/snapshot-pre-boot.db \
+--data-dir=/var/lib/etcd-backup 
