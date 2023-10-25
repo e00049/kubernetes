@@ -1,8 +1,0 @@
-# In vimrc
-
-tabstop=2
-expandtab
-shiftwidth=2
-
-export do="--dry-run=client -o yaml" \
-  
