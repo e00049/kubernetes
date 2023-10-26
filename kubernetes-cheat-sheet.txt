@@ -104,3 +104,5 @@ change the etcd-data path - /var/lib/etcd-backup in /etc/kubebernetes/manifast/e
   
 ETCDCTL_API=3 etcdctl snapshot restore /opt/snapshot-pre-boot.db \
 --data-dir=/var/lib/etcd-backup 
+
+kubectl run httpd --image=httpd:alpine --port 80 --expose 
