@@ -1,0 +1,21 @@
+
+# Hardcored the env values
+- name: APP_COLOR
+  value: green 
+
+# Take as induval key  
+  containers:
+  - env:
+    - name: APP_COLOR
+      valueFrom:
+        configMapKeyRef:
+          key: APP_COLOR
+          name: webapp-config-map
+
+# Loaded as full values
+    envFrom:
+    - configMapRef:
+        name: db-secret
+
+# to validate the configmap values in pod 
+kubectl exec -it webapp-pod -- env
