@@ -106,3 +106,6 @@ ETCDCTL_API=3 etcdctl snapshot restore /opt/snapshot-pre-boot.db \
 --data-dir=/var/lib/etcd-backup 
 
 kubectl run httpd --image=httpd:alpine --port 80 --expose 
+
+kubectl run busybox --image=busybox  -it --rm --restart=Never -- /bin/sh -c 'echo Hello, World!'
+
