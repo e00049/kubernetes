@@ -32,7 +32,7 @@ sudo apt-add-repository "deb http://apt.kubernetes.io/ kubernetes-xenial main"
 
  # Step 04: Install Kubeadm on the both the Machines
  
- sudo apt install kubeadm kubectl kubelet -y
+sudo apt -y install vim git curl wget kubelet=1.26.9-00 kubeadm=1.26.9-00 kubectl=1.26.9-00
  
  kubeadm version
  
