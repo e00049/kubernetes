@@ -109,3 +109,7 @@ kubectl run httpd --image=httpd:alpine --port 80 --expose
 
 kubectl run busybox --image=busybox  -it --rm --restart=Never -- /bin/sh -c 'echo Hello, World!'
 
+kubectl get pod --show-labels
+
+kubectl get pod -l app=nginx
+
