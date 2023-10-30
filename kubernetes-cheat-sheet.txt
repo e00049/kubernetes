@@ -113,3 +113,4 @@ kubectl get pod --show-labels
 
 kubectl get pod -l app=nginx
 
+$ kubectl get nodes -o jsonpath='{.items[*].status.addresses[?(@.type=="InteralIP")].address}'  > /root/interal_IP_List
