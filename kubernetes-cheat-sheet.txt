@@ -114,3 +114,6 @@ kubectl get pod --show-labels
 kubectl get pod -l app=nginx
 
 $ kubectl get nodes -o jsonpath='{.items[*].status.addresses[?(@.type=="InteralIP")].address}'  > /root/interal_IP_List
+
+$ kubectl create rs web-pod --image=nginx:1.16 --labels="env=dev" --dry-run=client -o yaml 
+
