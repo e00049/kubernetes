@@ -107,7 +107,7 @@ ETCDCTL_API=3 etcdctl snapshot restore /opt/snapshot-pre-boot.db \
 
 kubectl run httpd --image=httpd:alpine --port 80 --expose 
 
-kubectl run busybox --image=busybox  -it --rm --restart=Never -- /bin/sh -c 'echo Hello, World!'
+kubectl run busybox --image=busybox  -it --rm --restart=Never -- /bin/sh -c 'echo "Hello, World!"'
 
 kubectl get pod --show-labels
 
@@ -117,3 +117,4 @@ $ kubectl get nodes -o jsonpath='{.items[*].status.addresses[?(@.type=="InteralI
 
 $ kubectl create rs web-pod --image=nginx:1.16 --labels="env=dev" --dry-run=client -o yaml 
 
+$ kubectl drain ek8s-node-1 --ignore-daemonsets --delete-local-data --force 
