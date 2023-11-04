@@ -118,3 +118,7 @@ $ kubectl get nodes -o jsonpath='{.items[*].status.addresses[?(@.type=="InteralI
 $ kubectl create rs web-pod --image=nginx:1.16 --labels="env=dev" --dry-run=client -o yaml 
 
 $ kubectl drain ek8s-node-1 --ignore-daemonsets --delete-local-data --force 
+
+$ kubectl exec -it busybox -- nslookup  nginx-resolver-service.default.svc.cluster.local
+
+$ kubectl exec -it busybox -- nslookup  10-100-233-120.default.pod.cluster.local > /root/CKA/nginx.pod
