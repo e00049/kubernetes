@@ -1,0 +1,426 @@
+Certified Kubernetes Administrator (CKA) Exam
+
+001. ETCD Backup and Restore
+002. Ingress 
+003. Network Policy
+004. Cluster Upgrade
+005. Kubelet Service 
+006. Cluster Role
+007. PV, PVC, and POD
+008. Deployment and Service
+009. ConfigMap and Secret
+010. Security Context
+011. Commands and Arguments
+012. JSON and Custom Path
+013. Labels, Selectors 
+014. Taints, Tolerations
+015. Logs, Events
+
+****************************************************************************************
+
+
+Question 01 | ETCD Cluster Backup and Restore:
+
+    Use context: kubectl config use-context k8s-c3-CCC
+
+    Make a backup of etcd running on cluster3-controlplane1 and save it on the controlplane node at /tmp/etcd-backup.db.
+    Then create a Pod of your kind in the cluster.
+
+    Finally restore the backup, confirm the cluster is still working and that the created Pod is no longer with us.
+
+    Note: Endpoints and certificates they will give or else we should use default certificates.
+
+Solution:
+
+$ kubectl config use-context k8s-c3-CCC
+
+$ cat /etc/kubernetes/manifest/etcd.yaml | grep file
+	- --cert-file=/etc/kubernetes/pki/etcd/server.crt
+	- --key-file=/etc/kubernetes/pki/etcd/server.key
+	- --peer-cert-file=/etc/kubernetes/pki/etcd/peer.crt
+	- --peer-key-file=/etc/kubernetes/pki/etcd/peer.key
+	- --peer-trusted-ca-file=/etc/kubernetes/pki/etcd/ca.crt
+	- --trusted-ca-file=/etc/kubernetes/pki/etcd/ca.crt
+
+$ cat /etc/kubernetes/manifests/etcd.yaml | grep listen
+	- --listen-client-urls=https://127.0.0.1:2379,https://192.6.198.6:2379
+	- --listen-metrics-urls=http://127.0.0.1:2381
+	- --listen-peer-urls=https://192.6.198.6:2380
+
+Starts from here...
+
+$ ETCDCTL_API=3 etcdctl --endpoints 127.0.0.1:2379 \
+	--cert=/etc/kubernetes/pki/etcd/server.crt \
+	--key=/etc/kubernetes/pki/etcd/server.key \
+	--cacert=/etc/kubernetes/pki/etcd/ca.crt \
+	snapshot save /tmp/etcd-backup.db
+
+$ mv /etc/kubernetes/manifests/etcd.yaml .
+    /var/lib/etcd to /var/lib/etcd-backup
+
+$ ETCDCTL_API=3 etcdctl \
+	--data-dir=/var/lib/etcd-backup \
+	--cert=/etc/kubernetes/pki/etcd/server.crt \
+	--key=/etc/kubernetes/pki/etcd/server.key \
+	--cacert=/etc/kubernetes/pki/etcd/ca.crt \
+	snapshot restore /tmp/etcd-backup.db
+
+$ mv etcd.yaml /etc/kubernetes/manifests/etcd.yaml
+
+****************************************************************************************
+
+Question: 02 | Ingress 
+
+Create a new nginx Ingress resource as follows:
+    Name: ping 
+    Namespace: ing-internal
+    Exposing service hi on path /hi using service port 5678 
+
+Solution:
+$ kubectl create ingress ping --rule="/hi=hi:5678" --dry-run=client -o yaml 
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ping
+  namespace: ing-internal
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /  
+spec:
+  rules:
+  - http:
+      paths:
+      - backend:
+          service:
+            name: hi
+            port:
+              number: 5678
+        path: /hi
+        pathType: Exact
+status:
+  loadBalancer: {}
+
+------------------------------------ TYPE 02 ---------------------------------
+
+Host based Ingress:
+
+    There are two existing Deployments in Namespace world which should be made accessible via an Ingress.
+    First: create ClusterIP Services for both Deployments for port 80 . The Services should have the same name as the Deployments.
+
+Solution:
+
+$ kubectl get deploy -n world
+
+$ kubectl expose deploy europe --port 80 -n world
+$ kubectl expose deploy asia   --port 80 -n world
+
+$ kubectl -n world  create ingress simple --rule="world.universe.mine/asia=asia:8080" --rule="world.universe.mine/europe=europe:8080" --dry-run=client -o yaml
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: simple
+  namespace: world
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  ingressClassName: nginx # k get ingressclass
+  rules:
+  - host: world.universe.mine
+    http:
+      paths:
+      - backend:
+          service:
+            name: asia
+            port:
+              number: 80
+        path: /asia
+        pathType: Exact
+      - backend:
+          service:
+            name: europe
+            port:
+              number: 80
+        path: /europe
+        pathType: Exact
+status:
+  loadBalancer: {}
+
+
+controlplane $ curl http://world.universe.mine:30080/asia/
+hello, you reached ASIA
+controlplane $ curl http://world.universe.mine:30080/europe/
+hello, you reached EUROPE
+
+****************************************************************************************
+
+NetworkPolicy 03 |
+Create a new namespace named airfusion.
+Create a new network policy named my-net-po in the airfusion namespace
+
+Requirements:
+1. Network policy should allow PODS within the airfusion to connect to each other only on Port 80. No other ports should be allowed.
+2. No Pods from outside of the airfusion should be able to connect to any pods inside the airfusion. 
+
+Solution:
+
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: my-net-po
+  namespace: airfusion
+spec:
+  podSelector: {} 
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              project: airfusion
+          podSelector: {}
+      ports:
+        - protocol: TCP
+          port: 80
+
+-----------------------------------------------------------------------------------------------------
+
+Create a new NetworkPolicy named allow-port-from-namespace in the existing namespace fubar.
+
+Ensure that the new NetworkPolicy allows Pods in namespace internal to connect to port 9000 of Pods in namespace fubar.
+
+Further ensure that the new NetworkPolicy:
+Does not allow access to Pods, which don't listen on port 9000
+Does not allow access from Pods, which are not in namespace internal
+
+Solution:
+
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-port-from-namespace
+  namespace: fubar
+spec:
+  podSelector:
+    matchLabels: {}  # Matches all Pods within the "fubar" namespace
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+      - namespaceSelector:
+          matchLabels:
+            kubernetes.io/metadata.name: internal
+      ports:
+      - protocol: TCP
+        port: 9000
+
+****************************************************************************************
+
+Question: 04
+
+Upgrade the current version of kubernetes from 1.26.0 to 1.27.0 exactly using the kubeadm utility. 
+Make sure that the upgrade is carried out one node at a time starting with the controlplane node.
+To minimize downtime, the deployment gold-nginx should be rescheduled on an alternate node before upgrading each node.
+Upgrade controlplane node first and drain node node01 before upgrading it. Pods for gold-nginx should run on the controlplane node subsequently.
+Cluster Upgraded?
+pods 'gold-nginx' running on controlplane?
+
+Solution:
+On Control Panel Node:
+ $ kubectl get nodes -o wide
+ $ apt update && apt-cache madison kubeadm
+ $ apt-get install -y kubeadm=1.27.0-00 kubelet=1.27.0-00 kubectl=1.27.0-00 --allow-change-held-packages
+ $ systemctl daemon-reload && systemctl restart kubelet
+
+On Worker Node:
+  $ kubectl drain node01 # On master node
+  $ apt-get update && apt-get install -y kubeadm=1.27.0-00 kubelet=1.27.0-00 kubectl=1.27.0-00 --allow-change-held-packages
+  $ systemctl daemon-reload && systemctl restart kubelet
+  $ kubectl uncordon node01
+
+****************************************************************************************
+
+
+Check kubelet service is not running on node01. solve with permanent solution:
+
+ $ ssh node01
+
+ # systmectl status kubelet - service is not running
+
+ # systemctl restart kubelet
+
+****************************************************************************************
+
+
+Let's talk a little about RBAC resources
+A ClusterRole|Role defines a set of permissions and where it is available, in the whole cluster or just a single Namespace.
+
+A ClusterRoleBinding|RoleBinding connects a set of permissions with an account and defines where it is applied, in the whole cluster or just a single Namespace.
+
+Because of this there are 4 different RBAC combinations and 3 valid ones:
+
+Role        + RoleBinding (available in single Namespace, applied in single Namespace)
+ClusterRole + ClusterRoleBinding (available cluster-wide, applied cluster-wide)
+ClusterRole + RoleBinding (available cluster-wide, applied in single Namespace)
+Role        + ClusterRoleBinding (NOT POSSIBLE: available in single Namespace, applied cluster-wide)
+
+Create a new ServiceAccount processor in Namespace project-hamster. 
+Create a Role and RoleBinding, both named processor as well. These should allow the new SA to only create Secrets and ConfigMaps in that Namespace.
+
+Solution: 
+  $ kubectl -n project-hamster create sa processor
+
+  $ kubectl -n project-hamster create role processor --verb=create --resource=configmap,secret
+
+  $ kubectl -n project-hamster create rolebinding processor --role processor --serviceaccount project-hamster:processor 
+
+
+Question 17:
+
+You have been asked to create a new ClusterRole for deployment pipeline and build it to a specific ServiceAcoount 
+scoped to a specific namespace.
+Create a new ClusterRole named deployment-clusterrole, which only allows to create the followinf resource types"
+
+  -> deployment
+  -> StatfulSet
+  -> DaemonSet
+
+Create a new ServiceAcoount named cicd-token in the existing namespace app-team1
+Bind the new ClusterRole deployment-clusterrole to the new Servic Account cicd-token, limited to the namespace app-team1
+
+Solution:
+  $ kubectl -n app-team create serviceaccount cicd-tok
+  $ kubectl create clusterrole deployment-clusterrole --verb=create --resource=Deployment,StatefulSet,DaemonSet 
+  $ kubectl create rolebinding deployment-clusterrole --clusterrole deployment-clusterrole --serviceaccount=app-team1:cicd-token  --namespace app-team1 
+
+
+****************************************************************************************
+
+Question 06:
+
+StorageClass, Persistent Volumes, PersistentVolumeClaim. 
+
+Question :
+
+Create a new PersistentVolume name safari-pv, It should have a capacity of 2Gi, accessMode ReadWriteOnce, hostPath /Volumes/Data and no stprageClassName defined. 
+
+Next create a new PersistentVolumeClaim in Namespace project-tiger named safari-pvc.  It shoudl request 2Gi storage, accessMode ReadWriteOnce and should not define a storageClassName. 
+
+Finally create a new pod safari in Namespace project-tiger which mounts that volume at /var/www/html. The Pods of the containers should be image nginx. 
+Solution:
+
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: safari-pv
+spec:
+  capacity:
+    storage: 2Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/Volumes/Data"
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: safari-pvc
+  namespace: project-tiger
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2Gi
+
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: mypod
+  namespace: project-tiger
+spec:
+  containers:
+    - name: myfrontend
+      image: nginx
+      volumeMounts:
+      - mountPath: "/var/www/html"
+        name: mypd
+  volumes:
+    - name: mypd
+      persistentVolumeClaim:
+        claimName: myclaim
+
+-------------------------------------- Type: 02 ------------------------------------------------------------------
+
+Create StorageClass 
+    Name: mystorageclass
+
+Based on this create PersistentVolumeClaim
+    Name: my-pvc-claim
+    Class: mystorageclass
+    Capacity: 10Mi
+
+Create a new Pod which mounts the PersistentVolumeClaim as a volume.
+    Name: web-server
+    Image: nginx
+    MountPath: /use/share/nginx/html 
+
+Create the new Pod to have ReadWriteOnce access on the volume.
+Finally, Using kubectl edit or kubectl patch expand the PersistentVolumeClaim
+
+Note: If PVC has storageclass that can increase dynamically. 
+
+Solution:
+
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: mystorageclass
+provisioner: kubernetes.io/gce-pd
+parameters:
+  type: pd-standard
+  fstype: ext4
+  replication-type: none
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: my-pvc-claim
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Mi
+  storageClassName: mystorageclass
+
+---
+apiVersion: v1
+kind: Pod
+metadata:
+    name: web-server
+spec:
+  containers:
+  - image: nginx
+    name: nginx
+    volumeMounts:
+    - mountPath: "/use/share/nginx/html"
+      name: mypd
+  volumes:
+    - name: mypd
+      persistentVolumeClaim:
+        claimName: my-pvc-claim
+
+Finaly, Use kubectl edit command and increase the size of the pvc. 
+    $ kubectl edit pvc my-pvc-claim
+
+----------------------------------------------------------------------------------------------------------
