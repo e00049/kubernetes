@@ -58,7 +58,7 @@ $ ETCDCTL_API=3 etcdctl --endpoints 127.0.0.1:2379 \
 $ mv /etc/kubernetes/manifests/etcd.yaml .
     /var/lib/etcd to /var/lib/etcd-backup
 
-$ ETCDCTL_API=3 etcdctl \
+$ $ ETCDCTL_API=3 etcdctl \
 	--data-dir=/var/lib/etcd-backup \
 	--cert=/etc/kubernetes/pki/etcd/server.crt \
 	--key=/etc/kubernetes/pki/etcd/server.key \
@@ -241,17 +241,6 @@ On Worker Node:
   $ apt-get update && apt-get install -y kubeadm=1.27.0-00 kubelet=1.27.0-00 kubectl=1.27.0-00 --allow-change-held-packages
   $ systemctl daemon-reload && systemctl restart kubelet
   $ kubectl uncordon node01
-
-****************************************************************************************
-
-
-Check kubelet service is not running on node01. solve with permanent solution:
-
- $ ssh node01
-
- # systmectl status kubelet - service is not running
-
- # systemctl restart kubelet
 
 ****************************************************************************************
 
