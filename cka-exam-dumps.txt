@@ -1,3 +1,5 @@
+
+
 Certified Kubernetes Administrator (CKA) Exam
 
 001. ETCD Backup and Restore
@@ -16,10 +18,8 @@ Certified Kubernetes Administrator (CKA) Exam
 014. Taints, Tolerations
 015. Logs, Events
 
-****************************************************************************************
 
-
-Question 01 | ETCD Cluster Backup and Restore:
+********************************************** ETCD Cluster Backup and Restore **********************************************
 
     Use context: kubectl config use-context k8s-c3-CCC
 
@@ -58,7 +58,7 @@ $ ETCDCTL_API=3 etcdctl --endpoints 127.0.0.1:2379 \
 $ mv /etc/kubernetes/manifests/etcd.yaml .
     /var/lib/etcd to /var/lib/etcd-backup
 
-$ $ ETCDCTL_API=3 etcdctl \
+$ ETCDCTL_API=3 etcdctl \
 	--data-dir=/var/lib/etcd-backup \
 	--cert=/etc/kubernetes/pki/etcd/server.crt \
 	--key=/etc/kubernetes/pki/etcd/server.key \
@@ -67,7 +67,7 @@ $ $ ETCDCTL_API=3 etcdctl \
 
 $ mv etcd.yaml /etc/kubernetes/manifests/etcd.yaml
 
-****************************************************************************************
+------------------------------------------------- Ingress ---------------------------------------------------
 
 Question: 02 | Ingress 
 
@@ -101,7 +101,7 @@ spec:
 status:
   loadBalancer: {}
 
------------------------------------- TYPE 02 ---------------------------------
+------------------------------------------------------- TYPE 02 -----------------------------------------------------------------
 
 Host based Ingress:
 
@@ -154,7 +154,7 @@ hello, you reached ASIA
 controlplane $ curl http://world.universe.mine:30080/europe/
 hello, you reached EUROPE
 
-****************************************************************************************
+-------------------------------------------------------  Network Policy --------------------------------------------------------------------
 
 NetworkPolicy 03 |
 Create a new namespace named airfusion.
@@ -186,7 +186,7 @@ spec:
         - protocol: TCP
           port: 80
 
------------------------------------------------------------------------------------------------------
+------------------------------------------------- Network Policy ----------------------------------------------------
 
 Create a new NetworkPolicy named allow-port-from-namespace in the existing namespace fubar.
 
@@ -218,7 +218,7 @@ spec:
       - protocol: TCP
         port: 9000
 
-****************************************************************************************
+--------------------------------------------- Cluster upgrade using Kubeadm ---------------------------------------------------------------------------
 
 Question: 04
 
@@ -242,7 +242,7 @@ On Worker Node:
   $ systemctl daemon-reload && systemctl restart kubelet
   $ kubectl uncordon node01
 
-****************************************************************************************
+----------------------------------------- Role, CusterRole, RoleBinding and ClusterRoleBinding ------------------------------------------------------------
 
 
 Let's talk a little about RBAC resources
@@ -287,13 +287,7 @@ Solution:
   $ kubectl create rolebinding deployment-clusterrole --clusterrole deployment-clusterrole --serviceaccount=app-team1:cicd-token  --namespace app-team1 
 
 
-****************************************************************************************
-
-Question 06:
-
-StorageClass, Persistent Volumes, PersistentVolumeClaim. 
-
-Question :
+------------------------------------------------------ Persistent Volumes, PersistentVolumeClaim ----------------------------------------------------------------
 
 Create a new PersistentVolume name safari-pv, It should have a capacity of 2Gi, accessMode ReadWriteOnce, hostPath /Volumes/Data and no stprageClassName defined. 
 
@@ -346,7 +340,7 @@ spec:
       persistentVolumeClaim:
         claimName: myclaim
 
--------------------------------------- Type: 02 ------------------------------------------------------------------
+----------------------------------------------- StorageClass, PersistentVolume and PersistentVolumeClaim ------------------------------------------------------------------
 
 Create StorageClass 
     Name: mystorageclass
@@ -412,4 +406,780 @@ spec:
 Finaly, Use kubectl edit command and increase the size of the pvc. 
     $ kubectl edit pvc my-pvc-claim
 
-----------------------------------------------------------------------------------------------------------
+
+----------------------------------------- Multi Containers and Pod shared Volume ---------------------------------------------------------------
+Use context: kubectl config use-context k8s-c1-H
+ 
+Create a Pod named multi-container-playground in Namespace default with three containers, named c1, c2 and c3. There should be a volume attached to that Pod and mounted into every container, but the volume shouldn't be persisted or shared with other Pods.
+
+Container c1 should be of image nginx:1.17.6-alpine and have the name of the node where its Pod is running available as environment variable MY_NODE_NAME.
+Container c2 should be of image busybox:1.31.1 and write the output of the date command every second in the shared volume into file date.log. You can use while true; do date >> /your/vol/path/date.log; sleep 1; done for this.
+Container c3 should be of image busybox:1.31.1 and constantly send the content of file date.log from the shared volume to stdout. You can use tail -f /your/vol/path/date.log for this.
+
+Check the logs of container c3 to confirm correct setup.
+
+Solution:
+
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    run: multi-container-playground
+  name: multi-container-playground
+spec:
+  containers:
+  - image: nginx:1.17.6-alpine
+    name: c1
+    env: 
+    - name: NODE_NAME
+      valuefrom:
+        fieldRef:
+          fieldPath: spec.nodeName
+  - name: c2
+    image: busybox
+    command: ["sh", "-c", "while true; do date >> /vol/date.log; sleep 1; done"]
+    volumeMounts:
+    - name: vol
+      mountPath: "/vol"
+  - name: c3
+    image: busybox
+    command: ["sh", "-c", "tail -f /vol/date.log"]
+    volumeMounts:
+    - name: vol
+      mountPath: /vol
+  volumes:
+  - name: vol
+    emptyDir: {}
+
+------------------------------------------- Deployment and Service ---------------------------------------------------------------
+
+Create fd-deployment with image nginx and expose as NodePort service. 
+
+$ kubectl -n preprod create deployment fd-deployment --image=nginx --port 80 --dry-run=client -o yaml 
+$ kubectl -n preprod  expose deployment fd-deployment --name=fd-deployment-service --port 80 --type NodePort --dry-run=client -o yaml > svc.yaml
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: fd-deployment
+  name: fd-deployment
+  namespace: preprod
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: fd-deployment
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: fd-deployment
+    spec:
+      containers:
+      - image: nginx
+        name: nginx
+        ports:
+        - containerPort: 80
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: fd-deployment
+  name: fd-deployment-service
+  namespace: preprod
+spec:
+  ports:
+  - port: 80
+    protocol: TCP
+    targetPort: 80
+    nodePort: 30022
+  selector:
+    app: fd-deployment
+  type: NodePort
+status:
+  loadBalancer: {}
+
+-------------------------------------------Secrets and Pod ---------------------------------------------------------------
+
+Create secrets secret1 mount as volume, secet2 as env value
+
+$ kubectl -n secret create secret generic secret2 --from-literal=username=root --from-literal=pass=mypass --dry-run=client -o yaml
+
+apiVersion: v1
+data:
+  pass: bXlwYXNz
+  username: cm9vdA==
+kind: Secret
+metadata:
+  creationTimestamp: null
+  name: secret2
+  namespace: secret
+
+
+$ kubectl -n secret run secret-pod --image=nginx  --dry-run=client -o yaml  --command -- sleep 4000 
+
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: null
+  labels:
+    run: secret-pod
+  name: secret-pod
+  namespace: secret
+spec:
+  volumes:
+  - name: mysecret
+    secret:
+      secretName: secret1
+  containers:
+  - command:
+    - sleep
+    - "4000"
+    image: nginx
+    name: secret-pod
+    env:                                  
+    - name: APP_USER                      
+      valueFrom:                          
+        secretKeyRef:                     
+          name: secret2                   
+          key: user           
+    - name: APP_PASS                     
+      valueFrom:                          
+        secretKeyRef:                     
+          name: secret2                   
+          key: pass                 
+    volumeMounts:
+    - name: mysecret
+      mountPath: /volume
+      readOnly: true
+
+-------------------------------------------ConfigMap with Pod -----------------------------------
+
+$ kubectl create ns configmap 
+
+$ kubectl -n configmap create configmap my-config --from-literal=name=root --from-literal=pass=123
+
+$ kubectl -n configmap run configmap-pod --image=nginx --dry-run=client -o yaml --command -- sleep 3000 > configmap.yaml 
+
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: null
+  labels:
+    run: configmap-pod
+  name: configmap-pod
+  namespace: configmap
+spec:
+  volumes:
+  - name: foo
+    configMap:
+      name: myconfigmap
+  containers:
+  - command:
+    - sleep
+    - "3000"
+    image: nginx
+    name: configmap-pod
+    env:
+    - name: USER_NAME
+      valueFrom:
+        configMapKeyRef:
+          name: my-config
+          key: name
+    - name: USER_PASS
+      valueFrom:
+        configMapKeyRef:
+          name: my-config
+          key: pass
+    volumeMounts:
+    - name: foo
+      mountPath: /vol/munt
+
+---------------------------Taints and Tolerations ---------------------------------------------
+
+$ kubectl taint node controlplane env_type=dev:NoSchedule
+
+$ kubectl run tainted-pod --image=nginx --dry-run=client -o yaml
+
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: null
+  labels:
+    run: tainted-pod
+  name: tainted-pod
+spec:
+  containers:
+  - image: nginx
+    name: tainted-pod
+tolerations:
+- key: "env_type"
+  operator: "Equal"
+  value: "dev"
+  effect: "NoSchedule"
+
+------------------------------------ Labels and Selectors ------------------------------------------
+
+
+$ kubectl label node controlplane env=dev
+
+$ kubectl run with-node-affinity --image=nginx --dry-run=client -o yaml 
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: with-node-affinity
+spec:
+  containers:
+  - name: with-node-affinity
+    image: registry.k8s.io/pause:2.0
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: env
+            operator: In
+            values:
+            - dev    
+
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: with-node-affinity
+spec:
+  containers:
+  - name: with-node-affinity
+    image: registry.k8s.io/pause:2.0
+  nodeSelector:
+    env: dev
+               
+------------------------------------------------------------------------------------------------               
+
+There are various Pods running in all the namespaces of Kubernetes Cluster. 
+Write a command into "/opt/pods_asc.sh" which lists all the Pods sorted by their AGE in Acending order.
+
+
+Soultion:
+
+$ echo "kubectl get pod -A --sort-by=.metadata.creationTimestamp --no-header | tac" > /opt/pods_asc.sh
+
+------------------------------------------------------------------------------------------------
+
+Create a Pod caled delta-pod in defense namespace belonging to the development environment (env=dev) and frontend tier (tier=front)
+
+    Image: nginx:1..17
+
+Solution:
+
+$ kubectl -n defense run delta-pod --image=nginx:1.17 --labels "env=dev,tier=front" --dry-run=client -o yaml > 4.yaml
+
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: delta-pod 
+  labels:
+    env: dev
+    tier: frontend 
+  namespace: defense
+spec:
+  containers:
+  - name: container1
+    image: nginx 
+
+------------------------------------------------------------------------------------------------
+
+Create a new pod called admin-pod with image busybox. allow the pod to be able to set system_time
+
+The should sleep for 3200 seconds
+
+Soltion: 
+
+$ kubectl run admin-pod --image=busybox --dry-run=client -o yaml --command -- sleep 3200 > 5.yaml
+
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: admin-pod 
+spec:
+  containers:
+  - name: container1
+    image: nginx 
+    command:
+    - sleep
+    - "3200"
+    securityContext:
+        capabilities:
+            add: ["SYS_TIME"]    
+
+------------------------------------------------------------------------------------------------
+
+A kubeconfig file called test.kubeconfig has been created in /root/TEST. There is something wrong with the configuration.
+
+Troubleshoot and fix it. 
+
+$ kubectl config view --kubeconfig=/root/TEST/test.kubeconfig             
+
+------------------------------------------------------------------------------------------------
+
+Create a pod called web-pod using image nginx, expose it interllay with a serice acalled web-pod-svc. Check that you are able to look up the 
+
+service and pod from within the cluster.
+
+use the image: busybix: 1.28 for dns lookup.
+
+Record results in /root/web-svc.svc and /root/web-pod.pod
+
+Solution:
+
+$ kubectl run web-pod --image=nginx --port 80 
+
+$ kubectl expose pod web-pod  --name web-pod-svc --port 80 
+
+$ kubectl run busybox --image=busybox:1.28 --command -- sleep 2000 
+
+$ kubectl exec -it nslookup -- nslookup web-pod-svc > /root/web-svc.svc
+
+$ kubectl exec -it nslookup -- nslookup 10-23-34-43.default.pod > /root/web-svc.pod
+
+------------------------------------------------------------------------------------------------
+
+
+Use JSON PATH query to retrive the osImages of all the nodes and store it in a file "allNodes_osImage_45CVB34Ji.txt" at root location.
+
+Note: The OsImages are under the nodeInfo sectio under status of each node. 
+
+Solution:
+
+$ kubectl get node -o jsonpath='{.item[*].status.nodeInfo.osImage}' > allNodes_osImage_45CVB34Ji.txt
+
+------------------------------------------------------------------------------------------------
+
+List th InterlIP of all nods of the cluster. Save the result to a file /root/interal_IP_List.
+
+Answer should be in the format: InterlIP of First Node<psace>InteralIP of Second Node (in a single line)
+
+Solution: 
+
+$ kubectl get nodes -o jsonpath='{.items[*].status.addresses[?(@.type=="InteralIP")].address}'  > /root/interal_IP_List
+
+
+------------------------------------------------------------------------------------------------
+
+
+Create a new deployment called web-003. Scale the deployment to 3 replicas.
+
+Make sure desired number of pod always running.
+
+Solution:
+
+$ kubectl create deploy web-003 --image=nginx --replicas 3 
+
+------------------------------------------------------------------------------------------------
+
+
+There are 2 worker node associate with Kubernetes cluster, use JSONPATH quesry to retieve nodes osImage name and store it in file "~/getALlNodeOsImage/out.txt"
+
+Solution: 
+
+$ kubectl get node -o jsonpath='{.items[*].status.nodeInfo.osImage}'
+
+------------------------------------------------------------------------------------------------
+
+Create a pod "front-end-helper" that write "binarties downloaded successfully" into file "front-end-helper-log.txt" and then exit.
+
+check, pod "front-end-helper" should be deleted automatically when it s completed.
+
+Solution: 
+
+$ kubectl run frontend-helper --image=busybox -it --rm --restart=Never --command  'echo "binarties downloaded successfully"' >  front-end-helper-log.txt
+
+------------------------------------------------------------------------------------------------
+
+
+Check how many nodes are in ready state and write the information about nodes tainted with "NoSchedule" into file CKAC00466.txt
+
+At least one nodes's taint information should be logged in a file with below format. 
+
+Solution :
+
+$ kubectl get node | grep -i taints
+
+$ kubectl taint node node01 cpu=high:NoSchedule
+
+$ kubectl get nodes -o='custom-columns=NodeName:.metadata.name,TaintKey:.spec.taints[*].key,TaintValue:.spec.taints[*].value,TaintEffect:.spec.taints[*].effect' > CKAC00466.txt
+
+$ kubectl get nodes -o json | jq ".items[] | {name:.metadata.name, taints:.spec.taints}" > CKAC00466.txt
+
+------------------------------------------------------------------------------------------------
+
+
+Create a new deployment called nginx-deploy, with image nginx:1.16 and 8 replica. There are 5 worker node in cluster.
+
+Please make sure no pod will get deployed on 2 worker node, mentioed below:
+
+1. Worker-node-1
+2. Worker-node-2
+
+Note: Revert any changes that you did in cluster. 
+
+Solution: 
+
+  $ kubectl cronden worker-01 
+  $ kubectl coreden worker-02 
+
+  $ kubectl create deploy nginx-deploy --image=nginx replicas 8 --dry-run=client -o yaml > 33.yaml
+
+  $ kubectl uncordern worker-01
+
+  ------------------------------------------------------------------------------------------------
+
+
+Question 02:
+
+  From the Pod label name=cpu-user, find pod running hig CPU workload and write the name of the pod consuming most CPU to the file /opt/KUTR00401/KUtr00401.txt 
+
+Solution:
+
+  $ kubectl top pods -l name=cpu-user --sort-by=cpu 
+
+  $ kubectl top pods -l name=cpu-user --sort-by=memory
+
+  $ echo "my-pod" >> /opt/KUTR00401/KuTR0041.txt
+
+------------------------------------------------------------------------------------------------
+
+  Check to see how many nodes are ready (not inclusign nodes tainted NoSchedule) and write the number to /opt/KUSC0042/kusc0042.txt
+
+Soultion: 
+
+  $ kubectl describe nodes | grep -i taint | grep -i NoSchedule
+
+  $ kubectl get nodes -o='custom-columns=NodeName:.metadata.name,TaintKey:.spec.taints[*].key,TaintValue:.spec.taints[*].value,TaintEffect:.spec.taints[*].effect'
+
+--------------------------------------------------------------------------------------------------
+
+Monitor the logs of pod foobar and:
+  Extract log lines correcsponding to error "unable-to-access-website"
+
+  Write them to /opt/KUTR00101/foobar
+
+Solution:
+
+$ kubectl logs foobar | grep "unable-to-access-websit" > /opt/KUTR00101/foobar
+
+-------------------------------------------------------------------------------------------------------
+
+List all persistent volumes shorted by capacity, saving the full kubectl output to /opt/KuCC00102/volume_list. 
+
+Use Kubectl's Own functionality for sorting the output and do not  manipulate it any further.
+
+Solution:
+
+  $ kubectl get pv --sort-by=.spec.capacity.storage > /opt/KuCC00102/volume_list
+
+-----------------------------------------------------------------------------------------------------
+
+  Create a file: /opt/KUCC00302/kubecc00302.txt that list all pods that implement service "baz" in namespace "development".
+
+  the format of the file should be one pod name per line.
+
+  Solution:
+
+    $ kubectl describe service baz -n development 
+
+    --> selector:name=foo
+
+    $ kubectl -n developement get pods -n name=foo  -o NAME > /opt/KUCC00302/kubecc00302.txt
+
+------------------------------------------------------------------------------------------------------------
+
+
+Side carcontainer:
+
+  Without changing it s existing containers, an existing Pod need to be intergrated into Kubernetes's built-in logging architexture (e.g: kubectl logs).
+
+  Adding a straming sidecar container is a good and common way to accomplish this requirment. 
+
+
+  Task:
+
+  Add a busybox sidecar container to the existing Pod big-corp-app. The new side car container has to run the folloign command:
+
+  /bin/sh -c tail -n+1 -f /var/log/big-corp-app.log
+
+  Use a volume mount named logs to make the file /var/log/big-corp-app.log available to the sidecar container. 
+
+  Don't modify the existing contianer. 
+  Don't modify the path of the log file, both contianers must access it at /var/log/big-crop-app.log
+
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: big-corp-app
+spec:
+  volumes:
+    - name: logs
+      emptyDir: {}
+  Containers:
+    - name: sidecar
+      image: busybox
+      command:
+        - "/bin/sh"
+        - "-c"
+        - "tail -n+1 -f /var/log/big-corp-app.log"
+      volumeMounts:
+        - name: logs
+          mountPath: /var/log
+    - name: main-container
+      image: nginx
+      volumeMounts:
+        - name: logs
+          mountPath: /var/log
+
+Source: chatGPT 
+--------------------------------------------------------------------------------------------------------------
+
+Check the image veriosn in pod without the describe command 
+
+=> kubectl get pod nginx -o jsonpath='{.spec.containers[*].image}{'\n}'
+
+--------------------------------------------------------------------------------------------------------------
+
+Question 
+
+Create pod with LivenessProbe and readinessProbe:
+
+Solution: 
+
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    name: simple-webapp
+  name: simple-webapp-2
+  namespace: default
+spec:
+  containers:
+  - env:
+    - name: APP_START_DELAY
+      value: "80"
+    image: kodekloud/webapp-delayed-start
+    imagePullPolicy: Always
+    name: simple-webapp
+    livenessProbe:
+      httpGet:
+        path: /live
+        port: 8080
+      initialDelaySeconds: 80
+      periodSeconds: 1
+    ports:
+    - containerPort: 8080
+      protocol: TCP
+    readinessProbe:
+      failureThreshold: 3
+      httpGet:
+        path: /ready
+        port: 8080
+        scheme: HTTP
+      periodSeconds: 10
+      successThreshold: 
+	  
+-----------------------------------------------------	  
+
+Create pod with command exec of livessProbe 
+
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx1401
+  namespace: default
+spec:
+  containers:
+    - name: nginx1401
+      image: nginx
+      livenessProbe:
+        exec:
+          command: ["ls /var/www/html/probe"]
+        initialDelaySeconds: 10
+        periodSeconds: 60
+				
+--------------------------------------------------------
+
+Create a job
+
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: whalesay
+spec:
+  completions: 10
+  backoffLimit: 6
+  template:
+    metadata:
+    spec:
+      containers:
+      - command:
+        - sh 
+        - -c
+        - "cowsay I am going to ace CKAD!"
+        image: docker/whalesay
+        name: whalesay
+      restartPolicy: Never
+	  
+-------------------------------------------------------------	
+
+Create pod with reasource and limits
+
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: example-pod
+spec:
+  containers:
+  - name: example-container
+    image: nginx
+    resources:
+      requests:
+        memory: "64Mi"
+        cpu: "250m"
+      limits:
+        memory: "128Mi"
+        cpu: "500m"
+ 
+-------------------------------------------------------------
+
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx
+  labels:
+    app: nginx
+spec:
+  ports:
+  - port: 80
+    name: web
+  clusterIP: None
+  selector:
+    app: nginx
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: web
+spec:
+  selector:
+    matchLabels:
+      app: nginx # has to match .spec.template.metadata.labels
+  serviceName: "nginx"
+  replicas: 3 # by default is 1
+  minReadySeconds: 10 # by default is 0
+  template:
+    metadata:
+      labels:
+        app: nginx # has to match .spec.selector.matchLabels
+    spec:
+      terminationGracePeriodSeconds: 10
+      containers:
+      - name: nginx
+        image: registry.k8s.io/nginx-slim:0.8
+        ports:
+        - containerPort: 80
+          name: web
+        volumeMounts:
+        - name: www
+          mountPath: /usr/share/nginx/html
+  volumeClaimTemplates:
+  - metadata:
+      name: www
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: "my-storage-class"
+      resources:
+        requests:
+          storage: 1Gi
+		  
+---------------------------------------------------------
+
+
+Create stateful set: 
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  creationTimestamp: null
+  labels:
+    app: my-statefulset
+  name: my-statefulset-service
+spec:
+  ports:
+  - port: 3309
+    protocol: TCP
+    targetPort: 3309
+  selector:
+    app: my-statefulset
+
+
+
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mysql-statefulset
+spec:
+  serviceName: "my-statefulset-service"
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mysql
+  template:
+    metadata:
+      labels:
+        app: mysql
+    spec:
+      containers:
+      - name: mysql
+        image: mysql:latest
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          value: "root"
+        - name: MYSQL_DATABASE
+          value: "myproject"
+        - name: MYSQL_USER
+          value: "e00049"
+        - name: MYSQL_PASSWORD
+          value: "redhat"
+        ports:
+        - containerPort: 3306
+        volumeMounts:
+        - name: mysql-storage
+          mountPath: /var/lib/mysql
+  volumeClaimTemplates:
+  - metadata:
+      name: mysql-storage
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: "your-storage-class"
+      resources:
+        requests:
+          storage: 1Gi
+
+-----------------------------------------------------------------------------  
