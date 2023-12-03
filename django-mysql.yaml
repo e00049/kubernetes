@@ -1,0 +1,98 @@
+# django-deployment.yaml
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: django-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: django
+  template:
+    metadata:
+      labels:
+        app: django
+    spec:
+      containers:
+      - name: django
+        image: your-django-image:tag
+        ports:
+        - containerPort: 8000
+        envFrom:
+        - configMapRef:
+            name: django-configmap
+        - secretRef:
+            name: django-secret
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: django-configmap
+data:
+  DJANGO_SETTING_1: value1
+  DJANGO_SETTING_2: value2
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: django-secret
+type: Opaque
+data:
+  DJANGO_SECRET_KEY: base64_encoded_secret_key
+
+
+# mysql-statefulset.yaml
+
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mysql-statefulset
+spec:
+  serviceName: "mysql-service"
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mysql
+  template:
+    metadata:
+      labels:
+        app: mysql
+    spec:
+      containers:
+      - name: mysql
+        image: mysql:latest
+        ports:
+        - containerPort: 3306
+        envFrom:
+        - configMapRef:
+            name: mysql-configmap
+        - secretRef:
+            name: mysql-secret
+  volumeClaimTemplates:
+  - metadata:
+      name: mysql-persistent-storage
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 1Gi
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mysql-configmap
+data:
+  MYSQL_SETTING_1: value1
+  MYSQL_SETTING_2: value2
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mysql-secret
+type: Opaque
+data:
+  MYSQL_ROOT_PASSWORD: base64_encoded_root_password
+  MYSQL_DATABASE: base64_encoded_db_name
+  MYSQL_USER: base64_encoded_db_user
+  MYSQL_PASSWORD: base64_encoded_db_password
