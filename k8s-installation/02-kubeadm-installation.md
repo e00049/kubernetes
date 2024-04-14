@@ -11,27 +11,35 @@ Pre-Requisites
 
 # Step: 01:  Install Docker on Master and Work Machines.
 
-sudo swapoff -a
-
-sudo apt update
-
-sudo apt install docker.io -y
-
-sudo usermod -aG docker e00049 && newgrp docker
-
+sudo swapoff -a && \
+sudo apt update && \
+sudo apt install docker.io -y && \
+sudo usermod -aG docker e00049 && newgrp docker && \
 sudo systemctl start docker && sudo systemctl enable docker
 
-# Step 02: Add the Kubernetes signing key on both the Machines
+# Step 02: Install Kuberntes using PIP Package manager
 
-sudo curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add
+sudo apt-get update && \
+sudo apt install python3-pip -y && \
+pip install kubernetes && \
+curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl
+chmod +x ./kubectl
+sudo mv ./kubectl /usr/local/bin/kubectl
 
-# Step 03: Add Xenial Kubernetes Repository on both the machines
 
-sudo apt-add-repository "deb http://apt.kubernetes.io/ kubernetes-xenial main"
+# Step 03: Configure repo for kubernetes
+
+sudo apt-get install -y apt-transport-https ca-certificates curl && \
+sudo mkdir -p -m 755 /etc/apt/keyrings && \
+curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.29/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg && \
+sudo chmod 644 /etc/apt/keyrings/kubernetes-apt-keyring.gpg && \
+echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.29/deb/ /' | sudo tee /etc/apt/sources.list.d/kubernetes.list && \
+sudo chmod 644 /etc/apt/sources.list.d/kubernetes.list  && \
+sudo apt-get update 
 
  # Step 04: Install Kubeadm on the both the Machines
  
-sudo apt -y install vim git curl wget kubelet=1.26.9-00 kubeadm=1.26.9-00 kubectl=1.26.9-00
+sudo apt-get install kubelet kubeadm kubectl -y 
  
  kubeadm version
  
@@ -60,9 +68,4 @@ sudo apt -y install vim git curl wget kubelet=1.26.9-00 kubeadm=1.26.9-00 kubect
  # To apply Tag for worker
  sudo kubectl label node worker.example.com node-role.kubernetes.io/worker=worker
 
-.
-.
-.
-Source: https://phoenixnap.com/kb/install-kubernetes-on-ubuntu
-Source: containerd instllation - https://www.techrepublic.com/article/install-containerd-ubuntu/
 
